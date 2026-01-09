@@ -165,7 +165,9 @@ async def create_citizen_reports(contracts):
     num_reports = 20
     
     high_risk_contracts = [c for c in contracts if c.get('bidder_count') == 1 or c.get('status') == 'delayed']
-    selected_contracts = random.sample(high_risk_contracts if high_risk_contracts else contracts, min(num_reports, len(contracts)))
+    pool = high_risk_contracts if high_risk_contracts else contracts
+    sample_size = min(num_reports, len(pool))
+    selected_contracts = random.sample(pool, sample_size) if sample_size > 0 else []
     
     for contract in selected_contracts:
         report_id = str(uuid.uuid4())
