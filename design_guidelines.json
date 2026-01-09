@@ -1,0 +1,140 @@
+{
+  "project_name": "Sentinel: Public Integrity Platform",
+  "design_philosophy": {
+    "identity": "E1: The Anti-AI Designer",
+    "core_concept": "Radical Transparency meets Swiss Precision",
+    "vibe": "Calm Authority. The interface should feel like a breath of fresh air (literally, using the airy cyan palette) but grounded in absolute truth (data precision).",
+    "anti_patterns": [
+      "No 'Bootstrap Admin' templates.",
+      "No dark mode for the public portal (transparency = light).",
+      "No generic 'handshake' stock photos.",
+      "No gradients on text."
+    ]
+  },
+  "typography": {
+    "primary_font": "Manrope",
+    "secondary_font": "Inter",
+    "mono_font": "JetBrains Mono",
+    "usage": {
+      "headings": "font-sans font-bold tracking-tight text-slate-900",
+      "body": "font-sans text-slate-600 leading-relaxed",
+      "data": "font-mono text-xs tracking-wide text-slate-500",
+      "hero_text": "text-5xl md:text-7xl font-extrabold tracking-tighter text-slate-900"
+    }
+  },
+  "colors": {
+    "palette": {
+      "background": "#E3FDFD",
+      "surface": "#FFFFFF",
+      "surface_highlight": "#CBF1F5",
+      "primary": "#71C9CE",
+      "primary_foreground": "#FFFFFF",
+      "accent": "#A6E3E9",
+      "text_main": "#0F172A",
+      "text_muted": "#64748B",
+      "border": "#E2E8F0",
+      "success": "#10B981",
+      "warning": "#F59E0B",
+      "danger": "#EF4444"
+    },
+    "semantic_mapping": {
+      "page_background": "bg-[#E3FDFD]",
+      "card_background": "bg-white",
+      "card_highlight": "bg-[#CBF1F5]",
+      "primary_button": "bg-[#71C9CE] hover:bg-[#5BB8BE] text-white shadow-lg shadow-cyan-200/50",
+      "secondary_button": "bg-white border-2 border-[#71C9CE] text-[#71C9CE] hover:bg-[#E3FDFD]",
+      "text_heading": "text-slate-900",
+      "text_body": "text-slate-600",
+      "border_subtle": "border-slate-100",
+      "border_strong": "border-[#A6E3E9]"
+    }
+  },
+  "layout_strategies": {
+    "citizen_portal": {
+      "grid_type": "Mode A: The Tetris Grid",
+      "container": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+      "spacing": "gap-8 md:gap-12",
+      "hero_section": "min-h-[80vh] flex items-center justify-center relative overflow-hidden"
+    },
+    "official_dashboard": {
+      "grid_type": "Mode B: The Control Room",
+      "container": "w-full px-6 py-6",
+      "spacing": "gap-4",
+      "sidebar": "w-64 fixed inset-y-0 left-0 z-50 bg-white border-r border-slate-100"
+    }
+  },
+  "components": {
+    "Card": {
+      "base": "bg-white rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300",
+      "interactive": "hover:-translate-y-1 hover:shadow-cyan-100 hover:border-[#A6E3E9]"
+    },
+    "Button": {
+      "base": "inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+      "sizes": {
+        "default": "h-10 px-4 py-2",
+        "sm": "h-9 rounded-md px-3",
+        "lg": "h-12 rounded-md px-8 text-base"
+      }
+    },
+    "Badge": {
+      "base": "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+      "variants": {
+        "risk_high": "border-transparent bg-red-100 text-red-700 hover:bg-red-200",
+        "risk_medium": "border-transparent bg-amber-100 text-amber-700 hover:bg-amber-200",
+        "risk_low": "border-transparent bg-emerald-100 text-emerald-700 hover:bg-emerald-200",
+        "neutral": "border-transparent bg-slate-100 text-slate-700"
+      }
+    }
+  },
+  "visual_assets": {
+    "images": {
+      "hero_bg": "https://images.unsplash.com/photo-1761792425134-7e09471c5b55?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODB8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBnb3Zlcm5tZW50JTIwYnVpbGRpbmclMjBhcmNoaXRlY3R1cmV8ZW58MHx8fHwxNzY3OTcxMjg3fDA&ixlib=rb-4.1.0&q=85",
+      "team_meeting": "https://images.pexels.com/photos/3184649/pexels-photo-3184649.jpeg",
+      "analyst_working": "https://images.pexels.com/photos/6930426/pexels-photo-6930426.jpeg",
+      "modern_city": "https://images.unsplash.com/photo-1764476751235-82addb009cd0?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODB8MHwxfHNlYXJjaHwzfHxtb2Rlcm4lMjBnb3Zlcm5tZW50JTIwYnVpbGRpbmclMjBhcmNoaXRlY3R1cmV8ZW58MHx8fHwxNzY3OTcxMjg3fDA&ixlib=rb-4.1.0&q=85"
+    },
+    "icons": {
+      "library": "lucide-react",
+      "style": "stroke-width-1.5"
+    }
+  },
+  "motion": {
+    "transitions": "transition-all duration-300 ease-out",
+    "hover_lift": "hover:-translate-y-1",
+    "page_enter": "animate-in fade-in slide-in-from-bottom-4 duration-500"
+  },
+  "accessibility": {
+    "contrast_check": "Ensure all text on #E3FDFD is Slate-900 or darker. White text on #71C9CE is borderline - use bold weight or darken the button slightly on hover.",
+    "focus_states": "focus:ring-2 focus:ring-[#71C9CE] focus:ring-offset-2"
+  },
+  "instructions_to_main_agent": [
+    "1. Install 'lucide-react' for icons.",
+    "2. Use the 'Manrope' font from Google Fonts (via import in index.css).",
+    "3. Implement the 'Citizen Portal' as the index route ('/').",
+    "4. Implement the 'Official Dashboard' as a protected route ('/official').",
+    "5. Use the provided hex codes EXACTLY. Do not deviate to Tailwind defaults for the primary colors.",
+    "6. For the 'Fraud Risk Score', use a circular progress indicator with color coding (Red=High, Green=Low).",
+    "7. Ensure the 'Report Fraud' form is anonymous-first (no login required by default).",
+    "8. Use 'sonner' for all toast notifications (success/error states)."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients",
+    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
+    "Create depth through layered design elements with z-index hierarchy",
+    "Use glass-morphism effects with backdrop filters (12-24px blur)",
+    "You MUST NOT apply universal transition. Eg: transition: all. This results in breaking transforms. Always add transitions for specific interactive elements like button, input excluding transforms",
+    "You MUST NOT center align the app container, ie do not add .App { text-align: center; } in the css file. This disrupts the human natural reading flow of text",
+    "Always use modern button styles like pill-shaped, or sharp button with interaction animations & color relevant to the app style",
+    "NEVER: use AI assistant Emoji characters like 🤖🧠💭💡🔮🎯📚🎭🎬🎪🎉🎊🎁🎀🎂🍰🎈🎨🎰💰💵💳🏦💎🪙💸🤑📊📈📉💹🔢🏆🥇 etc for icons.",
+    "Every interaction needs micro-animations - hover states, transitions, parallax effects, and entrance animations. Static = dead.",
+    "Use 2-3x more spacing than feels comfortable. Cramped designs look cheap.",
+    "Subtle grain textures, noise overlays, custom cursors, selection states, and loading animations: separates good from extraordinary.",
+    "Main agent relies on these image URLs. Missing categories (especially sponsor logos) = main agent will use placeholder text which is FORBIDDEN",
+    "Prioritize using pre-existing components from src/components/ui when applicable",
+    "Create new components that match the style and conventions of existing components when needed",
+    "Examine existing components to understand the project's component patterns before creating new ones",
+    "Components MUST use named exports (export const ComponentName = ...)",
+    "Pages MUST use default exports (export default function PageName() {...})",
+    "Use 'sonner' for toasts. Sonner component are located in /app/src/components/ui/sonner.tsx"
+  ]
+}
