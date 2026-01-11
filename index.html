@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Samagra-Setu</title>
+    <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body>
+
+    <header class="header">
+        <h1>🏛️ Samagra-Setu</h1>
+        <p>AI-Powered Federated Fraud Detection System</p>
+    </header>
+
+    <section class="card">
+        <h2>System Status</h2>
+        <p>Live ML Risk Engine</p>
+        <span id="systemStatus" class="badge ready">READY</span>
+
+        <br><br>
+        <button id="analyzeBtn" class="btn primary">
+            Analyze Applications
+        </button>
+
+    </section>
+
+    <section class="card">
+        <h2>Applicant Risk Analysis</h2>
+        <div id="results">No analysis yet.</div>
+    </section>
+
+    <section class="card">
+        <h2>Manual Fraud Check (Judge Input)</h2>
+
+        <input id="income" type="number" placeholder="Income" />
+        <input id="sameDay" type="number" placeholder="Same Day Visits" />
+        <input id="sharedMobile" type="number" placeholder="Shared Mobile Count" />
+        <input id="defaults" type="number" placeholder="Previous Defaults" />
+
+        <button id="manualBtn" class="btn danger">
+            Check Fraud
+        </button>
+        >
+
+        <div class="meter">
+            <div id="needle"></div>
+        </div>
+        <div id="results">
+
+        </div>
+
+        <p id="riskText">Risk: 0%</p>
+
+        <div id="manualResult"></div>
+    </section>
+
+    <script src="/app.js"></script>
+</body>
+
+</html>
