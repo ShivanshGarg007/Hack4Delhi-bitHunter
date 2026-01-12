@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: bithunter-api
+    env: python
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn server:app --host 0.0.0.0 --port 10000
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: MONGO_URL
+        scope: all
+      - key: DB_NAME
+        scope: all
+      - key: JWT_SECRET
+        scope: all
+      - key: JWT_ALGORITHM
+        scope: all
+      - key: SUPABASE_URL
+        scope: all
+      - key: SUPABASE_SERVICE_KEY
+        scope: all
+      - key: SUPABASE_BUCKET
+        scope: all
+      - key: FRONTEND_URL
+        scope: all
+      - key: PYTHONUNBUFFERED
+        value: "1"
