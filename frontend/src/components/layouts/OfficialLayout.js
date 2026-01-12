@@ -55,7 +55,7 @@ const OfficialLayout = () => {
           <div className="flex items-center space-x-3">
             <Shield className="h-8 w-8 text-[#71C9CE]" strokeWidth={1.5} />
             <div>
-              <span className="text-xl font-bold text-slate-900">Sentinel</span>
+              <span className="text-xl font-bold text-slate-900">bitHunter</span>
               <span className="block text-xs text-slate-500">Official Portal</span>
             </div>
           </div>
