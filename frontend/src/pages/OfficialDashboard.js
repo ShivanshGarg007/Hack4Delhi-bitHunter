@@ -1,27 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Shield, FileText, TrendingUp, AlertTriangle, Users, LogOut, ArrowRight } from 'lucide-react';
+import { FileText, TrendingUp, AlertTriangle, Users, ArrowRight, UserSearch, Link2, ScanLine } from 'lucide-react';
 import { toast } from 'sonner';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const COLORS = ['#EF4444', '#F59E0B', '#10B981'];
-
 const OfficialDashboard = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchDashboard();
-  }, []);
-
-  const fetchDashboard = async () => {
+  const fetchDashboard = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/official/dashboard`);
       setDashboard(response.data);
@@ -31,16 +25,15 @@ const OfficialDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
+  useEffect(() => {
+    fetchDashboard();
+  }, [fetchDashboard]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#E3FDFD] flex items-center justify-center">
+      <div className="p-8 flex items-center justify-center">
         <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#71C9CE]"></div>
       </div>
     );
@@ -54,30 +47,39 @@ const OfficialDashboard = () => {
 
   const fraudCategories = dashboard?.fraud_categories || {};
 
-  return (
-    <div className="min-h-screen bg-[#E3FDFD]">
-      <nav className="bg-white border-b border-slate-100 sticky top-0 z-10 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Shield className="h-8 w-8 text-[#71C9CE]" strokeWidth={1.5} />
-              <span className="text-2xl font-bold text-slate-900">Sentinel</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-slate-600">Welcome, {user?.full_name}</span>
-              <button
-                onClick={handleLogout}
-                className="flex items-center space-x-2 px-4 py-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>Logout</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+  // Integrated module cards
+  const integratedModules = [
+    {
+      icon: UserSearch,
+      title: 'Welfare Fraud',
+      description: 'Cross-reference applicants against Vahan & Discom',
+      path: '/official/welfare',
+      color: 'text-blue-500',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-200'
+    },
+    {
+      icon: Link2,
+      title: 'PDS Ledger',
+      description: 'Blockchain-based PDS transaction tracking',
+      path: '/official/ledger',
+      color: 'text-purple-500',
+      bgColor: 'bg-purple-50',
+      borderColor: 'border-purple-200'
+    },
+    {
+      icon: ScanLine,
+      title: 'Lifestyle Scan',
+      description: 'AI-powered asset & lifestyle mismatch detection',
+      path: '/official/lifestyle',
+      color: 'text-emerald-500',
+      bgColor: 'bg-emerald-50',
+      borderColor: 'border-emerald-200'
+    }
+  ];
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  return (
+    <div className="p-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Fraud Detection Dashboard</h1>
           <p className="text-slate-600">Overview of contract anomalies and risk indicators</p>
@@ -194,7 +196,28 @@ const OfficialDashboard = () => {
             ))}
           </div>
         </div>
-      </div>
+
+        {/* Integrated Fraud Detection Modules */}
+        <div className="bg-white rounded-xl border border-slate-100 p-6 shadow-sm mt-8">
+          <h2 className="text-xl font-bold text-slate-900 mb-6">Fraud Detection Modules</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {integratedModules.map((module) => (
+              <button
+                key={module.path}
+                onClick={() => navigate(module.path)}
+                className={`p-6 rounded-lg border ${module.borderColor} ${module.bgColor} hover:shadow-md transition-all text-left`}
+              >
+                <module.icon className={`h-8 w-8 ${module.color} mb-4`} strokeWidth={1.5} />
+                <h3 className="font-semibold text-slate-900 mb-2">{module.title}</h3>
+                <p className="text-sm text-slate-600">{module.description}</p>
+                <div className="flex items-center mt-4 text-sm font-medium text-slate-700">
+                  <span>Open Module</span>
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
     </div>
   );
 };

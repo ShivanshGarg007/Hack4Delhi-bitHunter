@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Building2, Calendar, Phone, Mail, FileText, AlertTriangle } from 'lucide-react';
@@ -13,11 +13,7 @@ const VendorDetail = () => {
   const [vendor, setVendor] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchVendor();
-  }, [id]);
-
-  const fetchVendor = async () => {
+  const fetchVendor = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/official/vendors/${id}`);
       setVendor(response.data);
@@ -27,7 +23,11 @@ const VendorDetail = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchVendor();
+  }, [fetchVendor]);
 
   const getRiskColor = (score) => {
     if (score >= 70) return 'text-red-600';
