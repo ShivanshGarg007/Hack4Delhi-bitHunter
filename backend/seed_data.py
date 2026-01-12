@@ -224,13 +224,20 @@ async def calculate_fraud_scores(contracts, vendors, reports):
 
 async def create_demo_official():
     from passlib.context import CryptContext
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    import bcrypt
+    
+    try:
+        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        hashed = pwd_context.hash("demo123")
+    except Exception as e:
+        # Fallback to direct bcrypt if CryptContext fails
+        hashed = bcrypt.hashpw("demo123".encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     
     user_id = str(uuid.uuid4())
     demo_user = {
         "id": user_id,
         "email": "official@sentinel.gov.in",
-        "hashed_password": pwd_context.hash("demo123"),
+        "hashed_password": hashed,
         "full_name": "Demo Official",
         "role": "official",
         "created_at": datetime.now(timezone.utc).isoformat()

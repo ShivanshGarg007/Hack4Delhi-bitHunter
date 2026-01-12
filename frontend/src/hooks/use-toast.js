@@ -132,6 +132,43 @@ function toast({
   }
 }
 
+// Add convenience methods for common toast types
+toast.success = (message, options = {}) => {
+  return toast({
+    title: "Success",
+    description: message,
+    variant: "default",
+    ...options,
+  })
+}
+
+toast.error = (message, options = {}) => {
+  return toast({
+    title: "Error",
+    description: message,
+    variant: "destructive",
+    ...options,
+  })
+}
+
+toast.info = (message, options = {}) => {
+  return toast({
+    title: "Info",
+    description: message,
+    variant: "default",
+    ...options,
+  })
+}
+
+toast.warning = (message, options = {}) => {
+  return toast({
+    title: "Warning",
+    description: message,
+    variant: "default",
+    ...options,
+  })
+}
+
 function useToast() {
   const [state, setState] = React.useState(memoryState)
 

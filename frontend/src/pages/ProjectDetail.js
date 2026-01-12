@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, Calendar, DollarSign, User, AlertTriangle, Upload, FileText, Image as ImageIcon } from 'lucide-react';
@@ -26,11 +26,7 @@ const ProjectDetail = () => {
   const [reportData, setReportData] = useState({ description: '', file: null });
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    fetchProject();
-  }, [id]);
-
-  const fetchProject = async () => {
+  const fetchProject = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/citizen/projects/${id}`);
       setProject(response.data);
@@ -40,7 +36,11 @@ const ProjectDetail = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchProject();
+  }, [fetchProject]);
 
   const handleSubmitReport = async (e) => {
     e.preventDefault();

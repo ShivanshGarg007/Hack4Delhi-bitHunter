@@ -16,6 +16,15 @@ import json
 from supabase import create_client, Client
 import io
 
+# Import integrated module routers
+try:
+    from routes import welfare_router, ledger_router, lifestyle_router
+    MODULES_AVAILABLE = True
+except ImportError as e:
+    MODULES_AVAILABLE = False
+    import logging
+    logging.warning(f"Could not import integrated modules: {e}")
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
@@ -117,7 +126,20 @@ async def register(user_data: UserRegister):
 @api_router.post("/auth/login", response_model=Token)
 async def login(user_data: UserLogin):
     user = await db.users.find_one({"email": user_data.email})
-    if not user or not pwd_context.verify(user_data.password, user["hashed_password"]):
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    # Try to verify password with passlib, fallback to direct bcrypt if passlib fails
+    try:
+        password_valid = pwd_context.verify(user_data.password, user["hashed_password"])
+    except Exception:
+        import bcrypt
+        try:
+            password_valid = bcrypt.checkpw(user_data.password.encode('utf-8'), user["hashed_password"].encode('utf-8'))
+        except Exception:
+            password_valid = False
+    
+    if not password_valid:
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
     access_token = create_access_token({"sub": user["id"], "email": user["email"]})
@@ -322,6 +344,13 @@ async def get_vendor_detail(vendor_id: str, current_user: dict = Depends(get_cur
     return vendor
 
 app.include_router(api_router)
+
+# Include integrated module routers
+if MODULES_AVAILABLE:
+    app.include_router(welfare_router)
+    app.include_router(ledger_router)
+    app.include_router(lifestyle_router)
+    logger.info("Integrated modules loaded: welfare, ledger, lifestyle")
 
 app.add_middleware(
     CORSMiddleware,

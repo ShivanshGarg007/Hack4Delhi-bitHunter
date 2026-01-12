@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -17,11 +17,7 @@ const ContractsList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [riskFilter, setRiskFilter] = useState(searchParams.get('risk') || 'all');
 
-  useEffect(() => {
-    fetchContracts();
-  }, [riskFilter]);
-
-  const fetchContracts = async () => {
+  const fetchContracts = useCallback(async () => {
     try {
       const params = {};
       if (riskFilter !== 'all') {
@@ -35,7 +31,11 @@ const ContractsList = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [riskFilter]);
+
+  useEffect(() => {
+    fetchContracts();
+  }, [fetchContracts]);
 
   const getRiskBadge = (score) => {
     if (score >= 70) {
