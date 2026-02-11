@@ -4,9 +4,11 @@ Quick fixes for common deployment issues encountered during setup.
 
 ---
 
-## ✅ Fixed: PyJWT Version Conflict
+## ✅ Fixed Issues
 
-### Issue
+### Issue #1: PyJWT Version Conflict ✅ RESOLVED
+
+#### Problem
 ```
 ERROR: Cannot install -r requirements.txt (line 58) and PyJWT==2.9.0 
 because these package versions have conflicting dependencies.
@@ -35,6 +37,49 @@ cd backend
 pip install -r requirements.txt
 
 # Should install without errors
+```
+
+---
+
+### Issue #2: Missing python-multipart ✅ RESOLVED
+
+#### Problem
+```
+RuntimeError: Form data requires "python-multipart" to be installed.
+You can install "python-multipart" with:
+pip install python-multipart
+```
+
+#### Root Cause
+- FastAPI requires `python-multipart` for handling file uploads and form data
+- Your `/api/citizen/reports` endpoint uses `File()` and `Form()` parameters
+- This dependency was missing from `requirements.txt`
+
+#### Solution Applied ✅
+Added to `backend/requirements.txt`:
+```python
+python-multipart>=0.0.6
+```
+
+#### Why This Happened
+FastAPI doesn't include `python-multipart` by default to keep the core lightweight. It's only needed when you use:
+- `File()` - for file uploads
+- `Form()` - for form data
+- `UploadFile` - for file handling
+
+#### Verification
+```bash
+# Test locally
+cd backend
+pip install -r requirements.txt
+python server.py
+
+# Should start without errors
+# Test file upload endpoint
+curl -X POST http://localhost:8000/api/citizen/reports \
+  -F "project_id=test" \
+  -F "description=test" \
+  -F "file=@test.txt"
 ```
 
 ---
@@ -251,6 +296,7 @@ fastapi==0.128.0
 uvicorn==0.40.0
 starlette==0.50.0
 pydantic==2.12.5
+python-multipart>=0.0.6  # ✅ Added for file uploads
 
 # Database
 motor==3.7.1
@@ -332,11 +378,15 @@ After fixing dependencies:
 
 ## 📝 Summary
 
-**Problem:** PyJWT version conflict with supabase-auth
+**Problems:** 
+1. PyJWT version conflict with supabase-auth
+2. Missing python-multipart for file uploads
 
-**Solution:** Updated `PyJWT==2.9.0` to `PyJWT>=2.10.1`
+**Solutions:** 
+1. Updated `PyJWT==2.9.0` to `PyJWT>=2.10.1`
+2. Added `python-multipart>=0.0.6`
 
-**Status:** ✅ Fixed and tested
+**Status:** ✅ Both issues fixed and tested
 
 **Action Required:** 
 1. Pull latest code: `git pull`
@@ -357,3 +407,146 @@ After fixing dependencies:
 For more help, see:
 - [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)
 - [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)
+
+
+---
+
+### Issue #3: Missing XGBoost ✅ RESOLVED
+
+#### Problem
+```
+WARNING - Could not import integrated modules: No module named 'xgboost'
+```
+
+#### Root Cause
+- Welfare ML model uses XGBoost for ensemble predictions
+- XGBoost was not included in `requirements.txt`
+- Module import fails, disabling integrated modules
+
+#### Solution Applied ✅
+Added to `backend/requirements.txt`:
+```python
+xgboost>=2.0.0
+```
+
+#### Verification
+```bash
+cd backend
+pip install -r requirements.txt
+python -c "import xgboost; print(xgboost.__version__)"
+# Should print version number
+```
+
+---
+
+### Issue #4: Render Port Mismatch ⚠️ ACTION REQUIRED
+
+#### Problem
+```
+Uvicorn running on http://0.0.0.0:10000
+==> Continuing to scan for open port 8000 (from PORT environment variable)...
+```
+
+#### Root Cause
+- Start command uses `--port 10000`
+- Render's PORT environment variable is set to `8000`
+- Mismatch prevents Render from detecting the service
+
+#### Solution (Choose One)
+
+**Option A: Use Render's PORT variable (Recommended)**
+```bash
+# Start Command in Render:
+uvicorn server:app --host 0.0.0.0 --port $PORT
+
+# Remove PORT from environment variables (let Render set it)
+```
+
+**Option B: Fix PORT environment variable**
+```bash
+# In Render environment variables:
+PORT=10000
+
+# Keep start command as:
+uvicorn server:app --host 0.0.0.0 --port 10000
+```
+
+#### How to Fix
+
+1. Go to Render Dashboard
+2. Select your service
+3. Click **"Settings"**
+4. Update **"Start Command"** to:
+   ```bash
+   uvicorn server:app --host 0.0.0.0 --port $PORT
+   ```
+5. Go to **"Environment"** tab
+6. **Delete** the `PORT` variable (let Render manage it)
+7. Click **"Save Changes"**
+8. Service will auto-redeploy
+
+#### Verification
+After fix, logs should show:
+```
+==> Your service is live 🎉
+```
+
+See [RENDER_PORT_FIX.md](./RENDER_PORT_FIX.md) for detailed instructions.
+
+---
+
+## 📊 Updated Dependencies (All Issues Fixed)
+
+```python
+# Core Framework
+fastapi==0.128.0
+uvicorn==0.40.0
+starlette==0.50.0
+pydantic==2.12.5
+python-multipart>=0.0.6  # ✅ Added for file uploads
+
+# Database
+motor==3.7.1
+pymongo==4.16.0
+
+# Authentication
+PyJWT>=2.10.1  # ✅ Fixed version conflict
+passlib==1.7.4
+bcrypt==5.0.0
+
+# Supabase
+supabase==2.27.1
+supabase-auth==2.27.1
+storage3==2.27.1
+
+# ML/Data Science
+pandas>=2.0.0
+numpy==2.4.0
+scikit-learn==1.8.0
+scipy==1.16.3
+xgboost>=2.0.0  # ✅ Added for ML model
+duckdb>=0.10.0
+splink>=4.0.0
+jellyfish>=1.0.0
+
+# Utilities
+python-dotenv==1.2.1
+requests==2.32.5
+```
+
+---
+
+## ✅ Summary of All Fixes
+
+| Issue | Status | Action Required |
+|-------|--------|-----------------|
+| PyJWT version conflict | ✅ Fixed | Commit & push |
+| Missing python-multipart | ✅ Fixed | Commit & push |
+| Missing xgboost | ✅ Fixed | Commit & push |
+| Port mismatch | ⚠️ Needs config | Update Render settings |
+
+**Next Steps:**
+1. Commit requirements.txt changes
+2. Push to GitHub
+3. Fix PORT configuration in Render
+4. Service will redeploy and work! 🎉
