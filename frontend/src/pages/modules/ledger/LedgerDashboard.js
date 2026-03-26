@@ -1,14 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { Link2, Shield, AlertTriangle, CheckCircle2, Plus, RefreshCw, Trash2 } from 'lucide-react';
+import { Link2, Shield, AlertTriangle, CheckCircle2, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
-import { Button } from '../../../components/ui/button';
-import { Badge } from '../../../components/ui/badge';
-import { Input } from '../../../components/ui/input';
-import { Label } from '../../../components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/table';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -20,11 +13,7 @@ const LedgerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newTransaction, setNewTransaction] = useState({
-    shop_id: 'SHOP001',
-    dealer_id: 'DEALER001',
-    beneficiary_id: 'BEN001',
-    item: 'Rice',
-    quantity: 10
+    shop_id: 'SHOP001', dealer_id: 'DEALER001', beneficiary_id: 'BEN001', item: 'Rice', quantity: 10
   });
 
   const fetchLedger = useCallback(async () => {
@@ -36,30 +25,19 @@ const LedgerDashboard = () => {
       setBlocks(ledgerRes.data.blocks || []);
       setStats(statsRes.data);
     } catch (error) {
-      console.error('Failed to fetch ledger:', error);
       toast.error('Failed to load ledger data');
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   }, []);
 
-  useEffect(() => {
-    fetchLedger();
-  }, [fetchLedger]);
+  useEffect(() => { fetchLedger(); }, [fetchLedger]);
 
   const verifyLedger = async () => {
     try {
       const response = await axios.get(`${API}/ledger/verify`);
       setVerifyStatus(response.data);
-      if (response.data.status === 'SAFE') {
-        toast.success('Blockchain verified: No tampering detected');
-      } else {
-        toast.error(`Tampering detected at block #${response.data.tampered_block}`);
-      }
-    } catch (error) {
-      console.error('Verification failed:', error);
-      toast.error('Verification failed');
-    }
+      if (response.data.status === 'SAFE') toast.success('Blockchain verified: No tampering detected');
+      else toast.error(`Tampering detected at block #${response.data.tampered_block}`);
+    } catch (error) { toast.error('Verification failed'); }
   };
 
   const addTransaction = async (e) => {
@@ -69,10 +47,7 @@ const LedgerDashboard = () => {
       toast.success('Transaction added to blockchain');
       setShowAddForm(false);
       fetchLedger();
-    } catch (error) {
-      console.error('Failed to add transaction:', error);
-      toast.error('Failed to add transaction');
-    }
+    } catch (error) { toast.error('Failed to add transaction'); }
   };
 
   const simulateTamper = async () => {
@@ -81,9 +56,7 @@ const LedgerDashboard = () => {
       const response = await axios.post(`${API}/ledger/simulate-tamper`);
       toast.warning(response.data.message);
       setVerifyStatus(null);
-    } catch (error) {
-      console.error('Tamper simulation failed:', error);
-    }
+    } catch (error) { console.error(error); }
   };
 
   const resetLedger = async () => {
@@ -91,215 +64,139 @@ const LedgerDashboard = () => {
     try {
       await axios.post(`${API}/ledger/reset`);
       toast.success('Ledger reset to genesis block');
-      fetchLedger();
-      setVerifyStatus(null);
-    } catch (error) {
-      console.error('Reset failed:', error);
-    }
+      fetchLedger(); setVerifyStatus(null);
+    } catch (error) { console.error(error); }
   };
 
-  if (loading) {
-    return (
-      <div className="p-8 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#71C9CE]"></div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div style={{ padding: 40, textAlign: 'center' }}>
+      <div className="animate-spin rounded-full" style={{ width: 32, height: 32, border: '3px solid #003087', borderTopColor: 'transparent', borderRadius: '50%', margin: '0 auto' }}></div>
+    </div>
+  );
 
   return (
-    <div className="p-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">PDS Ledger (Kawach)</h1>
-        <p className="text-slate-600">Tamper-proof blockchain for Public Distribution System transactions</p>
+    <div style={{ padding: 24, background: '#F5F5F0', minHeight: '100%' }}>
+      <div style={{ marginBottom: 16, borderBottom: '2px solid #FF6200', paddingBottom: 8 }}>
+        <h1 style={{ fontSize: 18, fontWeight: 700, color: '#003087', fontFamily: 'Noto Serif, Georgia, serif', margin: 0 }}>
+          PDS Ledger (Kawach)
+        </h1>
+        <div style={{ fontSize: 12, color: '#666', marginTop: 3 }}>
+          Tamper-proof blockchain for Public Distribution System transactions
+        </div>
       </div>
 
-      {/* Status Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Total Blocks</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{stats?.total_blocks || 0}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Transactions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{stats?.total_transactions || 0}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Unique Shops</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{stats?.unique_shops || 0}</p>
-          </CardContent>
-        </Card>
-
-        <Card className={verifyStatus?.status === 'SAFE' ? 'border-green-300 bg-green-50' : verifyStatus?.status === 'COMPROMISED' ? 'border-red-300 bg-red-50' : ''}>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Chain Status</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center space-x-2">
-            {verifyStatus?.status === 'SAFE' ? (
-              <>
-                <CheckCircle2 className="h-6 w-6 text-green-600" />
-                <span className="text-xl font-bold text-green-600">SECURE</span>
-              </>
-            ) : verifyStatus?.status === 'COMPROMISED' ? (
-              <>
-                <AlertTriangle className="h-6 w-6 text-red-600" />
-                <span className="text-xl font-bold text-red-600">TAMPERED</span>
-              </>
-            ) : (
-              <span className="text-xl font-bold text-slate-400">PENDING</span>
-            )}
-          </CardContent>
-        </Card>
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {[
+          { label: 'Total Blocks', value: stats?.total_blocks || 0, color: '#003087' },
+          { label: 'Transactions', value: stats?.total_transactions || 0, color: '#6a0dad' },
+          { label: 'Unique Shops', value: stats?.unique_shops || 0, color: '#e67e22' },
+          {
+            label: 'Chain Status',
+            value: verifyStatus?.status === 'SAFE' ? 'SECURE' : verifyStatus?.status === 'COMPROMISED' ? 'TAMPERED' : 'PENDING',
+            color: verifyStatus?.status === 'SAFE' ? '#27ae60' : verifyStatus?.status === 'COMPROMISED' ? '#c0392b' : '#888'
+          },
+        ].map((stat, i) => (
+          <div key={i} style={{ background: '#fff', border: '1px solid #ccc', borderTop: `3px solid ${stat.color}`, padding: '12px 14px' }}>
+            <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>{stat.label}</div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: stat.color }}>{stat.value}</div>
+          </div>
+        ))}
       </div>
 
       {/* Actions */}
-      <div className="flex gap-4 mb-8">
-        <Button onClick={verifyLedger} className="bg-[#71C9CE] hover:bg-[#5fb8bd]">
-          <Shield className="h-4 w-4 mr-2" />
-          Verify Ledger
-        </Button>
-        
-        <Button variant="outline" onClick={() => setShowAddForm(!showAddForm)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Transaction
-        </Button>
-
-        <Button variant="outline" onClick={simulateTamper} className="text-yellow-600 border-yellow-300 hover:bg-yellow-50">
-          <AlertTriangle className="h-4 w-4 mr-2" />
-          Simulate Tamper
-        </Button>
-
-        <Button variant="outline" onClick={resetLedger} className="text-red-600 border-red-300 hover:bg-red-50">
-          <Trash2 className="h-4 w-4 mr-2" />
-          Reset Ledger
-        </Button>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+        <button onClick={verifyLedger} className="gov-btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          <Shield style={{ width: 13, height: 13 }} /> Verify Ledger
+        </button>
+        <button onClick={() => setShowAddForm(!showAddForm)} className="gov-btn-outline" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          <Plus style={{ width: 13, height: 13 }} /> Add Transaction
+        </button>
+        <button onClick={simulateTamper} style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#fff', color: '#e67e22', border: '1px solid #e67e22', padding: '6px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer', borderRadius: 2 }}>
+          <AlertTriangle style={{ width: 13, height: 13 }} /> Simulate Tamper
+        </button>
+        <button onClick={resetLedger} style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#fff', color: '#c0392b', border: '1px solid #c0392b', padding: '6px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer', borderRadius: 2 }}>
+          <Trash2 style={{ width: 13, height: 13 }} /> Reset Ledger
+        </button>
       </div>
 
       {/* Add Transaction Form */}
       {showAddForm && (
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Add New Transaction</CardTitle>
-            <CardDescription>Add a PDS distribution record to the blockchain</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={addTransaction} className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <div>
-                <Label htmlFor="shop_id">Shop ID</Label>
-                <Input
-                  id="shop_id"
-                  value={newTransaction.shop_id}
-                  onChange={(e) => setNewTransaction({...newTransaction, shop_id: e.target.value})}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="dealer_id">Dealer ID</Label>
-                <Input
-                  id="dealer_id"
-                  value={newTransaction.dealer_id}
-                  onChange={(e) => setNewTransaction({...newTransaction, dealer_id: e.target.value})}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="beneficiary_id">Beneficiary ID</Label>
-                <Input
-                  id="beneficiary_id"
-                  value={newTransaction.beneficiary_id}
-                  onChange={(e) => setNewTransaction({...newTransaction, beneficiary_id: e.target.value})}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="item">Item</Label>
-                <Select
-                  value={newTransaction.item}
-                  onValueChange={(value) => setNewTransaction({...newTransaction, item: value})}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select item" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Rice">Rice</SelectItem>
-                    <SelectItem value="Wheat">Wheat</SelectItem>
-                    <SelectItem value="Sugar">Sugar</SelectItem>
-                    <SelectItem value="Pulses">Pulses</SelectItem>
-                    <SelectItem value="Oil">Oil</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="quantity">Quantity (kg)</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="quantity"
-                    type="number"
-                    value={newTransaction.quantity}
-                    onChange={(e) => setNewTransaction({...newTransaction, quantity: parseFloat(e.target.value)})}
-                    required
-                    min="1"
-                  />
-                  <Button type="submit" className="bg-[#71C9CE] hover:bg-[#5fb8bd]">Add</Button>
+        <div style={{ background: '#fff', border: '1px solid #ccc', borderTop: '3px solid #003087', marginBottom: 16 }}>
+          <div style={{ background: '#003087', padding: '8px 14px' }}>
+            <span style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>Add New Transaction</span>
+          </div>
+          <div style={{ padding: 16 }}>
+            <form onSubmit={addTransaction}>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                {[
+                  { id: 'shop_id', label: 'Shop ID', key: 'shop_id' },
+                  { id: 'dealer_id', label: 'Dealer ID', key: 'dealer_id' },
+                  { id: 'beneficiary_id', label: 'Beneficiary ID', key: 'beneficiary_id' },
+                ].map(field => (
+                  <div key={field.id}>
+                    <label className="gov-label">{field.label}</label>
+                    <input id={field.id} value={newTransaction[field.key]}
+                      onChange={e => setNewTransaction({ ...newTransaction, [field.key]: e.target.value })}
+                      required className="gov-input" />
+                  </div>
+                ))}
+                <div>
+                  <label className="gov-label">Item</label>
+                  <select value={newTransaction.item} onChange={e => setNewTransaction({ ...newTransaction, item: e.target.value })} className="gov-select" style={{ width: '100%' }}>
+                    {['Rice', 'Wheat', 'Sugar', 'Pulses', 'Oil'].map(item => <option key={item} value={item}>{item}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="gov-label">Quantity (kg)</label>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <input type="number" value={newTransaction.quantity}
+                      onChange={e => setNewTransaction({ ...newTransaction, quantity: parseFloat(e.target.value) })}
+                      required min="1" className="gov-input" />
+                    <button type="submit" className="gov-btn-primary" style={{ whiteSpace: 'nowrap' }}>Add</button>
+                  </div>
                 </div>
               </div>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
-      {/* Transaction Ledger */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Transaction Ledger</CardTitle>
-          <CardDescription>All PDS transactions recorded on the blockchain</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-20">Block #</TableHead>
-                <TableHead>Shop ID</TableHead>
-                <TableHead>Beneficiary</TableHead>
-                <TableHead>Item</TableHead>
-                <TableHead>Quantity</TableHead>
-                <TableHead>Timestamp</TableHead>
-                <TableHead className="w-48">Hash</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {blocks.map((block) => (
-                <TableRow key={block.index}>
-                  <TableCell className="font-medium">{block.index}</TableCell>
-                  <TableCell>{block.transaction?.shop_id}</TableCell>
-                  <TableCell>{block.transaction?.beneficiary_id}</TableCell>
-                  <TableCell>{block.transaction?.item}</TableCell>
-                  <TableCell>{block.transaction?.quantity} kg</TableCell>
-                  <TableCell className="text-sm text-slate-500">
-                    {new Date(block.timestamp).toLocaleString()}
-                  </TableCell>
-                  <TableCell className="font-mono text-xs text-slate-400">
-                    {block.hash?.substring(0, 16)}...
-                  </TableCell>
-                </TableRow>
+      {/* Ledger Table */}
+      <div style={{ background: '#fff', border: '1px solid #ccc', borderTop: '3px solid #003087' }}>
+        <div style={{ background: '#003087', padding: '8px 14px' }}>
+          <span style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>Transaction Ledger — Blockchain Records</span>
+        </div>
+        <div style={{ padding: 14, overflowX: 'auto' }}>
+          <table className="gov-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr>
+                <th>Block #</th>
+                <th>Shop ID</th>
+                <th>Beneficiary</th>
+                <th>Item</th>
+                <th>Quantity</th>
+                <th>Timestamp</th>
+                <th>Hash (truncated)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {blocks.map(block => (
+                <tr key={block.index}>
+                  <td style={{ fontWeight: 700, color: '#003087' }}>{block.index}</td>
+                  <td>{block.transaction?.shop_id}</td>
+                  <td>{block.transaction?.beneficiary_id}</td>
+                  <td>{block.transaction?.item}</td>
+                  <td>{block.transaction?.quantity} kg</td>
+                  <td style={{ fontSize: 11, color: '#888' }}>{new Date(block.timestamp).toLocaleString()}</td>
+                  <td style={{ fontFamily: 'Courier New, monospace', fontSize: 11, color: '#888' }}>{block.hash?.substring(0, 16)}...</td>
+                </tr>
               ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            </tbody>
+          </table>
+          {blocks.length === 0 && <div style={{ textAlign: 'center', padding: 24, color: '#888', fontSize: 13 }}>No transactions recorded yet.</div>}
+        </div>
+      </div>
     </div>
   );
 };

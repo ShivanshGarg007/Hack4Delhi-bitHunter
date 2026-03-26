@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { MapPin, AlertTriangle, CheckCircle, Clock, Search, MessageSquare, ArrowLeft } from 'lucide-react';
+import { MapPin, AlertTriangle, CheckCircle, Clock, Search, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -14,16 +14,13 @@ const CitizenPortal = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  useEffect(() => {
-    fetchProjects();
-  }, []);
+  useEffect(() => { fetchProjects(); }, []);
 
   const fetchProjects = async () => {
     try {
       const response = await axios.get(`${API}/citizen/projects`);
       setProjects(response.data.projects);
     } catch (error) {
-      console.error('Failed to fetch projects:', error);
       toast.error('Failed to load projects');
     } finally {
       setLoading(false);
@@ -31,69 +28,91 @@ const CitizenPortal = () => {
   };
 
   const getRiskBadge = (score) => {
-    if (score >= 70) {
-      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">High Risk</span>;
-    } else if (score >= 40) {
-      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">Medium Risk</span>;
-    }
-    return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">Low Risk</span>;
+    if (score >= 70) return <span className="gov-badge-high">High Risk</span>;
+    if (score >= 40) return <span className="gov-badge-medium">Medium Risk</span>;
+    return <span className="gov-badge-low">Low Risk</span>;
   };
 
   const getStatusIcon = (status) => {
-    switch(status) {
-      case 'completed':
-        return <CheckCircle className="h-5 w-5 text-emerald-500" />;
-      case 'delayed':
-        return <AlertTriangle className="h-5 w-5 text-amber-500" />;
-      default:
-        return <Clock className="h-5 w-5 text-blue-500" />;
+    switch (status) {
+      case 'completed': return <CheckCircle style={{ width: 14, height: 14, color: '#27ae60', display: 'inline' }} />;
+      case 'delayed': return <AlertTriangle style={{ width: 14, height: 14, color: '#e67e22', display: 'inline' }} />;
+      default: return <Clock style={{ width: 14, height: 14, color: '#003087', display: 'inline' }} />;
     }
   };
 
   const filteredProjects = projects.filter(p => {
     const matchesSearch = p.project_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         p.department.toLowerCase().includes(searchTerm.toLowerCase());
+      p.department.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
   return (
-    <div className="min-h-screen bg-[#E3FDFD]">
-      <nav className="bg-white border-b border-slate-100 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <button onClick={() => navigate('/')} className="flex items-center space-x-2 text-slate-600 hover:text-slate-900 transition-colors">
-              <ArrowLeft className="h-5 w-5" />
-              <span className="font-medium">Back to Home</span>
-            </button>
-            <h1 className="text-2xl font-bold text-slate-900">Citizen Portal</h1>
-            <div className="w-32"></div>
-          </div>
+    <div className="min-h-screen" style={{ background: '#F5F5F0' }}>
+      {/* Top bar */}
+      <div style={{ background: '#003087', color: '#fff', fontSize: 12, padding: '4px 0' }}>
+        <div className="max-w-7xl mx-auto px-4 flex justify-between">
+          <span>Government of National Capital Territory of Delhi</span>
+          <span>A- A A+</span>
         </div>
-      </nav>
+      </div>
+      <div className="gov-tricolor-bar"></div>
+      {/* Header */}
+      <div style={{ background: '#fff', borderBottom: '1px solid #ccc' }}>
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
+          <button onClick={() => navigate('/')} style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#003087', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13 }}>
+            <ArrowLeft style={{ width: 16, height: 16 }} /> Home
+          </button>
+          <div style={{ flex: 1, textAlign: 'center' }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: '#003087', fontFamily: 'Noto Serif, Georgia, serif' }}>
+              Citizen Portal — Government Projects
+            </div>
+            <div style={{ fontSize: 12, color: '#666' }}>नागरिक पोर्टल | Sentinel Anti-Fraud Platform</div>
+          </div>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Emblem_of_India.svg/120px-Emblem_of_India.svg.png"
+            alt="Emblem" style={{ height: 50 }} onError={e => { e.target.style.display = 'none'; }} />
+        </div>
+      </div>
+      <div className="gov-nav-bar">
+        <div className="max-w-7xl mx-auto px-4 flex">
+          {['Home', 'Projects', 'Submit Report', 'About', 'Contact'].map((item, i) => (
+            <a key={i} href="#" style={{ color: '#fff', fontSize: 13, padding: '8px 14px', borderRight: '1px solid rgba(255,255,255,0.2)', textDecoration: 'none' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#FF6200'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >{item}</a>
+          ))}
+        </div>
+      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-8">
-          <div className="bg-white rounded-xl border border-slate-100 p-6 shadow-sm">
-            <h2 className="text-xl font-bold text-slate-900 mb-4">Government Projects</h2>
-            
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Breadcrumb */}
+        <div style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+          <a href="#" style={{ color: '#003087' }}>Home</a> &rsaquo; <span>Government Projects</span>
+        </div>
+
+        <div style={{ background: '#fff', border: '1px solid #ccc', borderTop: '3px solid #003087' }}>
+          <div style={{ background: '#003087', padding: '10px 16px' }}>
+            <h2 style={{ color: '#fff', fontSize: 15, fontWeight: 700, margin: 0, fontFamily: 'Noto Serif, Georgia, serif' }}>
+              Government Projects — Public Transparency Portal
+            </h2>
+          </div>
+          <div style={{ padding: 16 }}>
+            {/* Filters */}
+            <div className="flex flex-col md:flex-row gap-3 mb-4">
+              <div style={{ flex: 1, position: 'relative' }}>
+                <Search style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, color: '#888' }} />
                 <input
                   type="text"
                   data-testid="search-projects-input"
                   placeholder="Search projects by name or department..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#71C9CE] focus:border-transparent"
+                  onChange={e => setSearchTerm(e.target.value)}
+                  className="gov-input"
+                  style={{ paddingLeft: 28 }}
                 />
               </div>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#71C9CE] focus:border-transparent"
-              >
+              <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="gov-select">
                 <option value="all">All Status</option>
                 <option value="ongoing">Ongoing</option>
                 <option value="delayed">Delayed</option>
@@ -102,40 +121,36 @@ const CitizenPortal = () => {
             </div>
 
             {loading ? (
-              <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#71C9CE]"></div>
+              <div style={{ textAlign: 'center', padding: 40 }}>
+                <div className="animate-spin rounded-full" style={{ width: 32, height: 32, border: '3px solid #003087', borderTopColor: 'transparent', borderRadius: '50%', margin: '0 auto' }}></div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredProjects.map((project) => (
-                  <div
-                    key={project.id}
-                    data-testid="project-card"
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {filteredProjects.map(project => (
+                  <div key={project.id} data-testid="project-card"
                     onClick={() => navigate(`/citizen/projects/${project.id}`)}
-                    className="bg-[#CBF1F5] hover:bg-[#A6E3E9] rounded-xl p-6 border border-slate-100 hover:border-[#71C9CE] transition-all duration-300 cursor-pointer hover:-translate-y-1 hover:shadow-md"
+                    style={{
+                      background: '#fff', border: '1px solid #ccc', borderLeft: '3px solid #003087',
+                      padding: 14, cursor: 'pointer', transition: 'all 0.15s'
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#f0f4ff'; e.currentTarget.style.borderLeftColor = '#FF6200'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderLeftColor = '#003087'; }}
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="text-lg font-bold text-slate-900 flex-1">{project.project_name}</h3>
-                      {project.is_flagged && <AlertTriangle className="h-5 w-5 text-red-500" strokeWidth={2} />}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                      <h3 style={{ fontSize: 14, fontWeight: 700, color: '#003087', margin: 0, flex: 1, fontFamily: 'Noto Serif, Georgia, serif' }}>
+                        {project.project_name}
+                      </h3>
+                      {project.is_flagged && <AlertTriangle style={{ width: 16, height: 16, color: '#c0392b', flexShrink: 0, marginLeft: 8 }} />}
                     </div>
-                    
-                    <p className="text-sm text-slate-600 mb-4 line-clamp-2">{project.description}</p>
-                    
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center text-sm text-slate-600">
-                        <MapPin className="h-4 w-4 mr-2" />
-                        {project.location?.city}, {project.location?.state}
-                      </div>
-                      <div className="flex items-center text-sm font-medium">
-                        {getStatusIcon(project.status)}
-                        <span className="ml-2 capitalize">{project.status}</span>
-                      </div>
+                    <p style={{ fontSize: 12, color: '#555', marginBottom: 8, lineHeight: 1.5 }}>{project.description}</p>
+                    <div style={{ display: 'flex', gap: 16, marginBottom: 8, fontSize: 12, color: '#666' }}>
+                      <span><MapPin style={{ width: 12, height: 12, display: 'inline', marginRight: 3 }} />{project.location?.city}, {project.location?.state}</span>
+                      <span>{getStatusIcon(project.status)} <span style={{ marginLeft: 3, textTransform: 'capitalize' }}>{project.status}</span></span>
                     </div>
-
-                    <div className="flex items-center justify-between pt-4 border-t border-slate-200">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #eee', paddingTop: 8 }}>
                       <div>
-                        <p className="text-xs text-slate-500 mb-1">Contract Value</p>
-                        <p className="text-lg font-bold text-slate-900">₹{(project.contract_value / 10000000).toFixed(2)}Cr</p>
+                        <div style={{ fontSize: 10, color: '#888' }}>Contract Value</div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: '#1a1a1a' }}>₹{(project.contract_value / 10000000).toFixed(2)} Cr</div>
                       </div>
                       {getRiskBadge(project.fraud_risk_score)}
                     </div>
@@ -143,14 +158,16 @@ const CitizenPortal = () => {
                 ))}
               </div>
             )}
-
             {!loading && filteredProjects.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-slate-600">No projects found matching your criteria</p>
-              </div>
+              <div style={{ textAlign: 'center', padding: 40, color: '#888', fontSize: 13 }}>No projects found matching your criteria.</div>
             )}
           </div>
         </div>
+      </div>
+
+      {/* Footer */}
+      <div style={{ background: '#003087', color: '#ccd6f6', marginTop: 32, padding: '12px 0', textAlign: 'center', fontSize: 11 }}>
+        © 2026 Government of National Capital Territory of Delhi | Sentinel Platform | NIC Delhi
       </div>
     </div>
   );

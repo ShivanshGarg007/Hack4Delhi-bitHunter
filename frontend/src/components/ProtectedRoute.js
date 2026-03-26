@@ -7,8 +7,11 @@ const ProtectedRoute = ({ children }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#E3FDFD] flex items-center justify-center">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#71C9CE]"></div>
+      <div style={{ minHeight: '100vh', background: '#F5F5F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div className="animate-spin rounded-full" style={{ width: 40, height: 40, border: '3px solid #003087', borderTopColor: 'transparent', borderRadius: '50%', margin: '0 auto 12px' }}></div>
+          <div style={{ fontSize: 13, color: '#666' }}>Authenticating...</div>
+        </div>
       </div>
     );
   }

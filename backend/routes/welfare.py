@@ -42,7 +42,8 @@ class ScanResult(BaseModel):
     declared_income: float
     risk_status: str  # "red", "yellow", "green"
     flags: List[dict]
-    ml_fraud_probability: Optional[float] = None
+    fraud_probability: Optional[float] = None
+    feature_values: Optional[dict] = None
     ml_risk_level: Optional[str] = None
     scanned_at: Optional[str] = None
 
@@ -127,7 +128,8 @@ async def scan_individual_applicant(
         declared_income=result['declared_income'],
         risk_status=result['risk_status'],
         flags=result['flags'],
-        ml_fraud_probability=result.get('ml_fraud_probability'),
+        fraud_probability=result.get('ml_fraud_probability') or result.get('fraud_probability'),
+        feature_values=result.get('feature_values'),
         ml_risk_level=result.get('ml_risk_level'),
         scanned_at=scan_doc['scanned_at']
     )

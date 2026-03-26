@@ -1,35 +1,19 @@
-'use client';
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
+import { AlertTriangle, ArrowLeft } from 'lucide-react';
+import { toast } from 'sonner';
+import { useAuth } from '../../../contexts/AuthContext';
 
 const WelfareScanIndividual = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { token } = useAuth();
   const API = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
 
-  const [loading, setLoading] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState(null);
-  
   const [formData, setFormData] = useState({
-    applicant_id: '',
-    name: '',
-    dob: '',
-    address: '',
-    declared_income: '',
-    asset_flag: 'Standard'
+    applicant_id: '', name: '', dob: '', address: '', declared_income: '', asset_flag: 'Standard'
   });
 
   const assetOptions = [
@@ -41,28 +25,15 @@ const WelfareScanIndividual = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleAssetChange = (value) => {
-    setFormData(prev => ({
-      ...prev,
-      asset_flag: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleScan = async (e) => {
     e.preventDefault();
-
-    // Validation
     if (!formData.applicant_id || !formData.name || !formData.dob || !formData.address || !formData.declared_income) {
       toast.error('Please fill in all required fields');
       return;
     }
-
     setScanning(true);
     try {
       const response = await axios.post(`${API}/api/welfare/scan`, {
@@ -72,364 +43,193 @@ const WelfareScanIndividual = () => {
         address: formData.address,
         declared_income: parseFloat(formData.declared_income),
         asset_flag: formData.asset_flag
-      }, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
+      }, { headers: { 'Authorization': `Bearer ${token}` } });
       setResult(response.data);
       toast.success('Scan completed successfully');
-      
-      // Scroll to result
-      setTimeout(() => {
-        document.getElementById('scan-result')?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
-
+      setTimeout(() => { document.getElementById('scan-result')?.scrollIntoView({ behavior: 'smooth' }); }, 100);
     } catch (error) {
-      console.error('Scan failed:', error);
       toast.error(error.response?.data?.detail || 'Failed to scan applicant');
     } finally {
       setScanning(false);
     }
   };
 
-  const getRiskIcon = (status) => {
-    switch (status) {
-      case 'red':
-        return <AlertTriangle className="h-6 w-6 text-red-600" />;
-      case 'yellow':
-        return <AlertCircle className="h-6 w-6 text-yellow-600" />;
-      case 'green':
-        return <CheckCircle className="h-6 w-6 text-green-600" />;
-      default:
-        return null;
-    }
+  const getRiskColor = (status) => {
+    if (status === 'red') return '#c0392b';
+    if (status === 'yellow') return '#e67e22';
+    return '#27ae60';
   };
 
-  const getRiskColor = (status) => {
-    switch (status) {
-      case 'red':
-        return 'border-red-200 bg-red-50';
-      case 'yellow':
-        return 'border-yellow-200 bg-yellow-50';
-      case 'green':
-        return 'border-green-200 bg-green-50';
-      default:
-        return 'border-slate-200 bg-slate-50';
-    }
+  const getRiskLabel = (status) => {
+    if (status === 'red') return 'HIGH RISK';
+    if (status === 'yellow') return 'MEDIUM RISK';
+    return 'LOW RISK';
   };
 
   return (
-    <div className="p-8">
-      {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
+    <div style={{ padding: 24, background: '#F5F5F0', minHeight: '100%' }}>
+      <div style={{ marginBottom: 16, borderBottom: '2px solid #FF6200', paddingBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Scan Individual Applicant</h1>
-          <p className="text-slate-600">Verify welfare fraud risk using ML-trained model on financial intelligence data</p>
+          <h1 style={{ fontSize: 18, fontWeight: 700, color: '#003087', fontFamily: 'Noto Serif, Georgia, serif', margin: 0 }}>
+            Scan Individual Applicant
+          </h1>
+          <div style={{ fontSize: 12, color: '#666', marginTop: 3 }}>
+            Verify welfare fraud risk using ML-trained model on financial intelligence data
+          </div>
         </div>
-        <Button
-          variant="outline"
-          onClick={() => navigate('/official/welfare')}
-          className="flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Dashboard
-        </Button>
+        <button onClick={() => navigate('/official/welfare')} className="gov-btn-outline" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          <ArrowLeft style={{ width: 13, height: 13 }} /> Back to Dashboard
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Form */}
         <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Applicant Details</CardTitle>
-              <CardDescription>Enter applicant information for fraud risk assessment</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleScan} className="space-y-6">
-                {/* Row 1 */}
-                <div className="grid grid-cols-2 gap-4">
+          <div style={{ background: '#fff', border: '1px solid #ccc', borderTop: '3px solid #003087' }}>
+            <div style={{ background: '#003087', padding: '8px 14px' }}>
+              <span style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>Applicant Details</span>
+            </div>
+            <div style={{ padding: 16 }}>
+              <form onSubmit={handleScan}>
+                <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Applicant ID *
-                    </label>
-                    <Input
-                      name="applicant_id"
-                      placeholder="e.g., DLHI000001"
-                      value={formData.applicant_id}
-                      onChange={handleInputChange}
-                      required
-                    />
+                    <label className="gov-label">Applicant ID *</label>
+                    <input name="applicant_id" placeholder="e.g., DLHI000001" value={formData.applicant_id} onChange={handleInputChange} required className="gov-input" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Full Name *
-                    </label>
-                    <Input
-                      name="name"
-                      placeholder="e.g., Raj Kumar Singh"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      required
-                    />
+                    <label className="gov-label">Full Name *</label>
+                    <input name="name" placeholder="e.g., Raj Kumar Singh" value={formData.name} onChange={handleInputChange} required className="gov-input" />
                   </div>
                 </div>
-
-                {/* Row 2 */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Date of Birth *
-                    </label>
-                    <Input
-                      name="dob"
-                      type="date"
-                      value={formData.dob}
-                      onChange={handleInputChange}
-                      required
-                    />
+                    <label className="gov-label">Date of Birth *</label>
+                    <input name="dob" type="date" value={formData.dob} onChange={handleInputChange} required className="gov-input" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Declared Annual Income (₹) *
-                    </label>
-                    <Input
-                      name="declared_income"
-                      type="number"
-                      placeholder="e.g., 300000"
-                      value={formData.declared_income}
-                      onChange={handleInputChange}
-                      required
-                    />
+                    <label className="gov-label">Declared Annual Income (₹) *</label>
+                    <input name="declared_income" type="number" placeholder="e.g., 300000" value={formData.declared_income} onChange={handleInputChange} required className="gov-input" />
                   </div>
                 </div>
-
-                {/* Row 3 */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Address *
-                  </label>
-                  <Input
-                    name="address"
-                    placeholder="e.g., 123 Main Street, Delhi"
-                    value={formData.address}
-                    onChange={handleInputChange}
-                    required
-                  />
+                <div style={{ marginBottom: 16 }}>
+                  <label className="gov-label">Address *</label>
+                  <input name="address" placeholder="e.g., 123 Main Street, Delhi" value={formData.address} onChange={handleInputChange} required className="gov-input" />
                 </div>
-
-                {/* Row 4 */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Asset Type
-                  </label>
-                  <Select value={formData.asset_flag} onValueChange={handleAssetChange}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {assetOptions.map(option => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Based on Vahan (vehicle) and property records
-                  </p>
+                <div style={{ marginBottom: 20 }}>
+                  <label className="gov-label">Asset Type</label>
+                  <select name="asset_flag" value={formData.asset_flag} onChange={handleInputChange} className="gov-select" style={{ width: '100%' }}>
+                    {assetOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                  </select>
+                  <div style={{ fontSize: 11, color: '#888', marginTop: 4 }}>Based on Vahan (vehicle) and property records</div>
                 </div>
-
-                {/* Buttons */}
-                <div className="flex gap-4 pt-6">
-                  <Button
-                    type="submit"
-                    disabled={scanning}
-                    className="flex-1 bg-[#71C9CE] hover:bg-[#5fb8bd]"
-                  >
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button type="submit" disabled={scanning} className="gov-btn-primary" style={{ flex: 1, padding: '9px', opacity: scanning ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                     {scanning ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Scanning...
-                      </>
-                    ) : (
-                      'Scan Applicant'
-                    )}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setFormData({
-                        applicant_id: '',
-                        name: '',
-                        dob: '',
-                        address: '',
-                        declared_income: '',
-                        asset_flag: 'Standard'
-                      });
-                      setResult(null);
-                    }}
-                  >
+                      <><div className="animate-spin rounded-full" style={{ width: 12, height: 12, border: '2px solid #fff', borderTopColor: 'transparent', borderRadius: '50%' }}></div> Scanning...</>
+                    ) : 'Scan Applicant'}
+                  </button>
+                  <button type="button" className="gov-btn-outline" onClick={() => { setFormData({ applicant_id: '', name: '', dob: '', address: '', declared_income: '', asset_flag: 'Standard' }); setResult(null); }}>
                     Clear
-                  </Button>
+                  </button>
                 </div>
               </form>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         {/* Info Panel */}
         <div>
-          <Card className="bg-blue-50 border-blue-200">
-            <CardHeader>
-              <CardTitle className="text-lg text-blue-900">How It Works</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 text-sm text-blue-800">
-              <div>
-                <h4 className="font-semibold mb-1">ML-Trained Model</h4>
-                <p>Uses financial intelligence dataset with 1,050 records for accurate fraud detection</p>
+          <div style={{ background: '#fff', border: '1px solid #ccc', borderTop: '3px solid #003087' }}>
+            <div style={{ background: '#003087', padding: '8px 14px' }}>
+              <span style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>How It Works</span>
+            </div>
+            <div style={{ padding: 14, fontSize: 12, color: '#444', lineHeight: 1.7 }}>
+              <div style={{ fontWeight: 700, color: '#003087', marginBottom: 4 }}>ML-Trained Model</div>
+              <p style={{ marginBottom: 10 }}>Uses financial intelligence dataset with 1,050 records for accurate fraud detection.</p>
+              <div style={{ fontWeight: 700, color: '#003087', marginBottom: 4 }}>Risk Factors</div>
+              <ul style={{ paddingLeft: 16, marginBottom: 10 }}>
+                <li>Asset ownership (Vahan)</li>
+                <li>Income-asset mismatch</li>
+                <li>Age &amp; demographics</li>
+                <li>Address patterns</li>
+              </ul>
+              <div style={{ fontWeight: 700, color: '#003087', marginBottom: 6 }}>Risk Levels</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <span className="gov-badge-high" style={{ display: 'inline-block' }}>🔴 Red — High Risk</span>
+                <span className="gov-badge-medium" style={{ display: 'inline-block' }}>🟡 Yellow — Medium Risk</span>
+                <span className="gov-badge-low" style={{ display: 'inline-block' }}>🟢 Green — Low Risk</span>
               </div>
-              <div>
-                <h4 className="font-semibold mb-1">Risk Factors</h4>
-                <ul className="list-disc pl-4 space-y-1">
-                  <li>Asset ownership (Vahan)</li>
-                  <li>Income-asset mismatch</li>
-                  <li>Age & demographics</li>
-                  <li>Address patterns</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-1">Risk Levels</h4>
-                <div className="space-y-1">
-                  <p>🔴 <span className="font-semibold">Red (High):</span> Likely fraud</p>
-                  <p>🟡 <span className="font-semibold">Yellow (Medium):</span> Suspicious</p>
-                  <p>🟢 <span className="font-semibold">Green (Low):</span> Safe</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Scan Result */}
+      {/* Result */}
       {result && (
-        <div id="scan-result" className="mt-8">
-          <Card className={`border-2 ${getRiskColor(result.risk_status)}`}>
-            <CardHeader className="pb-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {getRiskIcon(result.risk_status)}
-                  <div>
-                    <CardTitle className="text-xl">{result.name}</CardTitle>
-                    <CardDescription>ID: {result.applicant_id} | Risk Status: {result.risk_status.toUpperCase()}</CardDescription>
+        <div id="scan-result" style={{ marginTop: 24 }}>
+          <div style={{ background: '#fff', border: `2px solid ${getRiskColor(result.risk_status)}`, borderTop: `4px solid ${getRiskColor(result.risk_status)}` }}>
+            <div style={{ background: getRiskColor(result.risk_status), padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ color: '#fff' }}>
+                <div style={{ fontWeight: 700, fontSize: 15 }}>{result.name}</div>
+                <div style={{ fontSize: 12, opacity: 0.9 }}>ID: {result.applicant_id}</div>
+              </div>
+              <span style={{ background: '#fff', color: getRiskColor(result.risk_status), fontWeight: 700, fontSize: 13, padding: '4px 12px' }}>
+                {getRiskLabel(result.risk_status)}
+              </span>
+            </div>
+            <div style={{ padding: 16 }}>
+              <div className="grid grid-cols-3 gap-4 mb-4">
+                {[
+                  { label: 'Fraud Probability', value: result.fraud_probability != null ? `${(result.fraud_probability * 100).toFixed(1)}%` : 'N/A' },
+                  { label: 'Age', value: result.feature_values?.age || 'N/A' },
+                  { label: 'Declared Income', value: `₹${(result.declared_income / 100000).toFixed(1)}L` },
+                ].map((stat, i) => (
+                  <div key={i} style={{ background: '#f5f5f0', border: '1px solid #ddd', padding: '10px 12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>{stat.label}</div>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: '#1a1a1a' }}>{stat.value}</div>
                   </div>
-                </div>
-                <Badge
-                  variant={result.risk_status === 'red' ? 'destructive' : result.risk_status === 'yellow' ? 'warning' : 'success'}
-                  className="text-base px-4 py-2"
-                >
-                  {result.risk_status === 'red' ? 'HIGH RISK' : result.risk_status === 'yellow' ? 'MEDIUM RISK' : 'LOW RISK'}
-                </Badge>
-              </div>
-            </CardHeader>
-
-            <CardContent className="space-y-6">
-              {/* Risk Score */}
-              <div className="grid grid-cols-3 gap-4">
-                <Card className="bg-white">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-600">Fraud Probability</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-3xl font-bold text-slate-900">
-                      {(result.fraud_probability * 100).toFixed(1)}%
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-white">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-600">Age</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-3xl font-bold text-slate-900">
-                      {result.feature_values?.age || 'N/A'}
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-white">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-600">Declared Income</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-bold text-slate-900">
-                      ₹{(result.declared_income / 100000).toFixed(1)}L
-                    </p>
-                  </CardContent>
-                </Card>
+                ))}
               </div>
 
-              {/* Flags */}
               {result.flags && result.flags.length > 0 && (
-                <div>
-                  <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-red-600" />
-                    Red Flags Detected ({result.flags.length})
-                  </h3>
-                  <div className="space-y-2">
-                    {result.flags.map((flag, idx) => (
-                      <Alert key={idx} className={`border-l-4 ${
-                        flag.severity === 'high' ? 'border-l-red-600 bg-red-50' : 'border-l-yellow-600 bg-yellow-50'
-                      }`}>
-                        <AlertDescription>
-                          <p className="font-semibold text-slate-900 capitalize">
-                            {flag.type.replace(/_/g, ' ')}
-                          </p>
-                          <p className="text-sm text-slate-600 mt-1">{flag.details}</p>
-                        </AlertDescription>
-                      </Alert>
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#c0392b', marginBottom: 8 }}>
+                    ⚠ Red Flags Detected ({result.flags.length})
+                  </div>
+                  {result.flags.map((flag, idx) => (
+                    <div key={idx} style={{ display: 'flex', gap: 8, padding: '8px 10px', background: flag.severity === 'high' ? '#fff8f8' : '#fffbf0', border: `1px solid ${flag.severity === 'high' ? '#fdd' : '#ffe'}`, borderLeft: `3px solid ${flag.severity === 'high' ? '#c0392b' : '#e67e22'}`, marginBottom: 6 }}>
+                      <AlertTriangle style={{ width: 14, height: 14, color: flag.severity === 'high' ? '#c0392b' : '#e67e22', flexShrink: 0, marginTop: 1 }} />
+                      <div>
+                        <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'capitalize' }}>{(flag.type || flag.reason || '').replace(/_/g, ' ')}</div>
+                        <div style={{ fontSize: 12, color: '#555' }}>{flag.details || flag.evidence || ''}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {result.feature_values && (
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#003087', marginBottom: 8 }}>Model Feature Analysis</div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {Object.entries(result.feature_values).map(([key, value]) => (
+                      <div key={key} style={{ background: '#f5f5f0', border: '1px solid #ddd', padding: '8px 10px' }}>
+                        <div style={{ fontSize: 11, color: '#888', textTransform: 'capitalize' }}>{key.replace(/_/g, ' ')}</div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: '#1a1a1a' }}>{value}</div>
+                      </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Model Features */}
-              <div>
-                <h3 className="font-semibold text-slate-900 mb-3">Model Feature Analysis</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  {result.feature_values && Object.entries(result.feature_values).map(([key, value]) => (
-                    <div key={key} className="bg-slate-50 p-3 rounded-lg">
-                      <p className="text-xs text-slate-600 capitalize">{key.replace(/_/g, ' ')}</p>
-                      <p className="text-lg font-semibold text-slate-900">{value}</p>
-                    </div>
-                  ))}
-                </div>
+              <div style={{ padding: '12px 14px', background: result.risk_status === 'red' ? '#fff8f8' : result.risk_status === 'yellow' ? '#fffbf0' : '#f0fff4', border: `1px solid ${getRiskColor(result.risk_status)}`, borderLeft: `4px solid ${getRiskColor(result.risk_status)}` }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#333', marginBottom: 4 }}>Recommendation</div>
+                {result.risk_status === 'red' && <p style={{ fontSize: 13, color: '#555', margin: 0 }}>⛔ Reject welfare application. High fraud risk detected. Recommend for detailed investigation.</p>}
+                {result.risk_status === 'yellow' && <p style={{ fontSize: 13, color: '#555', margin: 0 }}>⚠️ Manual review required. Some anomalies detected. Recommend cross-verification with authorities.</p>}
+                {result.risk_status === 'green' && <p style={{ fontSize: 13, color: '#555', margin: 0 }}>✓ Application appears legitimate. Can proceed with standard processing.</p>}
               </div>
-
-              {/* Recommendation */}
-              <Alert className={`border-l-4 ${
-                result.risk_status === 'red' ? 'border-l-red-600 bg-red-50' :
-                result.risk_status === 'yellow' ? 'border-l-yellow-600 bg-yellow-50' :
-                'border-l-green-600 bg-green-50'
-              }`}>
-                <AlertDescription>
-                  <p className="font-semibold text-slate-900 mb-1">Recommendation</p>
-                  {result.risk_status === 'red' && (
-                    <p className="text-sm text-slate-600">⛔ Reject welfare application. High fraud risk detected. Recommend for detailed investigation.</p>
-                  )}
-                  {result.risk_status === 'yellow' && (
-                    <p className="text-sm text-slate-600">⚠️ Manual review required. Some anomalies detected. Recommend cross-verification with authorities.</p>
-                  )}
-                  {result.risk_status === 'green' && (
-                    <p className="text-sm text-slate-600">✓ Application appears legitimate. Can proceed with standard processing.</p>
-                  )}
-                </AlertDescription>
-              </Alert>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       )}
     </div>

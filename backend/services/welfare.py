@@ -261,8 +261,10 @@ class WelfareChecker:
             "declared_income": ml_input['declared_income'],
             "risk_status": risk_status,
             "flags": flags,
+            "fraud_probability": ml_result['fraud_probability'],
             "ml_fraud_probability": ml_result['fraud_probability'],
-            "ml_risk_level": ml_result['risk_level']
+            "ml_risk_level": ml_result['risk_level'],
+            "feature_values": ml_result.get('feature_values', {})
         }
     
     async def analyze_all_applicants(self) -> List[Dict[str, Any]]:

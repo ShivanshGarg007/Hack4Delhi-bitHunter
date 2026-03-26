@@ -50,6 +50,13 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+@app.on_event("startup")
+async def startup_event():
+    # Initialize the core database module used by welfare/ledger/lifestyle routes
+    from core.database import init_database
+    init_database()
+    logger.info("Core database module initialized")
+
 class UserRegister(BaseModel):
     email: EmailStr
     password: str
@@ -343,6 +350,14 @@ async def get_vendor_detail(vendor_id: str, current_user: dict = Depends(get_cur
     
     return vendor
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(api_router)
 
 # Include integrated module routers
@@ -351,14 +366,6 @@ if MODULES_AVAILABLE:
     app.include_router(ledger_router)
     app.include_router(lifestyle_router)
     logger.info("Integrated modules loaded: welfare, ledger, lifestyle")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():

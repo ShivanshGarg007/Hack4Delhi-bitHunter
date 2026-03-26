@@ -1,13 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { ScanLine, AlertTriangle, CheckCircle2, Users, Car, Zap } from 'lucide-react';
+import { ScanLine, AlertTriangle, CheckCircle2, Users } from 'lucide-react';
 import { toast } from 'sonner';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
-import { Button } from '../../../components/ui/button';
-import { Badge } from '../../../components/ui/badge';
-import { Input } from '../../../components/ui/input';
-import { Label } from '../../../components/ui/label';
-import { Textarea } from '../../../components/ui/textarea';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -18,11 +12,7 @@ const LifestyleDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
   const [scanResult, setScanResult] = useState(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    dob: '1980-01-01',
-    address: 'Delhi'
-  });
+  const [formData, setFormData] = useState({ name: '', dob: '1980-01-01', address: 'Delhi' });
 
   const fetchData = useCallback(async () => {
     try {
@@ -32,290 +22,200 @@ const LifestyleDashboard = () => {
       ]);
       setStats(statsRes.data);
       setHistory(historyRes.data);
-    } catch (error) {
-      console.error('Failed to fetch lifestyle data:', error);
-    } finally {
-      setLoading(false);
-    }
+    } catch (error) { console.error(error); } finally { setLoading(false); }
   }, []);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleScan = async (e) => {
     e.preventDefault();
-    if (!formData.name.trim()) {
-      toast.error('Please enter applicant name');
-      return;
-    }
-
-    setScanning(true);
-    setScanResult(null);
-
+    if (!formData.name.trim()) { toast.error('Please enter applicant name'); return; }
+    setScanning(true); setScanResult(null);
     try {
       const response = await axios.post(`${API}/lifestyle/scan`, formData);
       setScanResult(response.data);
-      fetchData(); // Refresh stats
-      
-      if (response.data.integrity_status === 'CLEAN') {
-        toast.success('Applicant is ELIGIBLE');
-      } else if (response.data.integrity_status === 'CRITICAL FRAUD') {
-        toast.error('CRITICAL FRAUD detected');
-      } else {
-        toast.warning('Review required for this applicant');
-      }
+      fetchData();
+      if (response.data.integrity_status === 'CLEAN') toast.success('Applicant is ELIGIBLE');
+      else if (response.data.integrity_status === 'CRITICAL FRAUD') toast.error('CRITICAL FRAUD detected');
+      else toast.warning('Review required for this applicant');
     } catch (error) {
-      console.error('Scan failed:', error);
       toast.error('Scan failed');
-    } finally {
-      setScanning(false);
-    }
+    } finally { setScanning(false); }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'CLEAN': return 'bg-green-500';
-      case 'REVIEW REQUIRED': return 'bg-yellow-500';
-      case 'CRITICAL FRAUD': return 'bg-red-500';
-      default: return 'bg-slate-500';
+      case 'CLEAN': return '#27ae60';
+      case 'REVIEW REQUIRED': return '#e67e22';
+      case 'CRITICAL FRAUD': return '#c0392b';
+      default: return '#888';
     }
   };
 
-  const getStatusIcon = (status) => {
+  const getStatusBadge = (status) => {
     switch (status) {
-      case 'CLEAN': return <CheckCircle2 className="h-16 w-16 text-green-600" />;
-      case 'REVIEW REQUIRED': return <AlertTriangle className="h-16 w-16 text-yellow-600" />;
-      case 'CRITICAL FRAUD': return <AlertTriangle className="h-16 w-16 text-red-600" />;
-      default: return null;
+      case 'CLEAN': return <span className="gov-badge-low">CLEAN</span>;
+      case 'REVIEW REQUIRED': return <span className="gov-badge-medium">REVIEW REQUIRED</span>;
+      case 'CRITICAL FRAUD': return <span className="gov-badge-high">CRITICAL FRAUD</span>;
+      default: return <span className="gov-badge-blue">{status}</span>;
     }
   };
 
-  if (loading) {
-    return (
-      <div className="p-8 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#71C9CE]"></div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div style={{ padding: 40, textAlign: 'center' }}>
+      <div className="animate-spin rounded-full" style={{ width: 32, height: 32, border: '3px solid #003087', borderTopColor: 'transparent', borderRadius: '50%', margin: '0 auto' }}></div>
+    </div>
+  );
 
   return (
-    <div className="p-8">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center space-x-3 mb-2">
-          <h1 className="text-3xl font-bold text-slate-900">SATARK-360 Scanner</h1>
-          <Badge className="bg-purple-500">PRO</Badge>
+    <div style={{ padding: 24, background: '#F5F5F0', minHeight: '100%' }}>
+      <div style={{ marginBottom: 16, borderBottom: '2px solid #FF6200', paddingBottom: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <h1 style={{ fontSize: 18, fontWeight: 700, color: '#003087', fontFamily: 'Noto Serif, Georgia, serif', margin: 0 }}>
+            SATARK-360 Scanner
+          </h1>
+          <span style={{ background: '#6a0dad', color: '#fff', fontSize: 10, padding: '2px 6px', fontWeight: 700 }}>PRO</span>
         </div>
-        <p className="text-slate-600">AI-powered 360° lifestyle & asset mismatch detection</p>
+        <div style={{ fontSize: 12, color: '#666', marginTop: 3 }}>
+          AI-powered 360° lifestyle &amp; asset mismatch detection
+        </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Total Scans</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{stats?.total_scans || 0}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-red-200 bg-red-50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-red-600">Critical Fraud</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-red-600">{stats?.status_distribution?.critical_fraud || 0}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-yellow-200 bg-yellow-50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-yellow-600">Review Required</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-yellow-600">{stats?.status_distribution?.review_required || 0}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-green-200 bg-green-50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-green-600">Clean</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-green-600">{stats?.status_distribution?.clean || 0}</p>
-          </CardContent>
-        </Card>
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {[
+          { label: 'Total Scans', value: stats?.total_scans || 0, color: '#003087' },
+          { label: 'Critical Fraud', value: stats?.status_distribution?.critical_fraud || 0, color: '#c0392b' },
+          { label: 'Review Required', value: stats?.status_distribution?.review_required || 0, color: '#e67e22' },
+          { label: 'Clean', value: stats?.status_distribution?.clean || 0, color: '#27ae60' },
+        ].map((stat, i) => (
+          <div key={i} style={{ background: '#fff', border: '1px solid #ccc', borderTop: `3px solid ${stat.color}`, padding: '12px 14px' }}>
+            <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>{stat.label}</div>
+            <div style={{ fontSize: 26, fontWeight: 700, color: stat.color }}>{stat.value}</div>
+          </div>
+        ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Scan Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <ScanLine className="h-5 w-5" />
-              <span>360° Profile Scan</span>
-            </CardTitle>
-            <CardDescription>Enter applicant details to scan Family, Assets & Lifestyle</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleScan} className="space-y-4">
-              <div>
-                <Label htmlFor="name">Head of Family Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  placeholder="e.g. Rajesh Kumar"
-                  required
-                />
+        <div style={{ background: '#fff', border: '1px solid #ccc', borderTop: '3px solid #003087' }}>
+          <div style={{ background: '#003087', padding: '8px 14px' }}>
+            <span style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>360° Profile Scan</span>
+          </div>
+          <div style={{ padding: 16 }}>
+            <p style={{ fontSize: 12, color: '#666', marginBottom: 14 }}>Enter applicant details to scan Family, Assets &amp; Lifestyle</p>
+            <form onSubmit={handleScan}>
+              <div style={{ marginBottom: 12 }}>
+                <label className="gov-label">Head of Family Name</label>
+                <input value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="e.g. Rajesh Kumar" required className="gov-input" />
               </div>
-              
-              <div>
-                <Label htmlFor="dob">Date of Birth</Label>
-                <Input
-                  id="dob"
-                  type="date"
-                  value={formData.dob}
-                  onChange={(e) => setFormData({...formData, dob: e.target.value})}
-                  required
-                />
+              <div style={{ marginBottom: 12 }}>
+                <label className="gov-label">Date of Birth</label>
+                <input type="date" value={formData.dob} onChange={e => setFormData({ ...formData, dob: e.target.value })}
+                  required className="gov-input" />
               </div>
-
-              <div>
-                <Label htmlFor="address">Declared Address</Label>
-                <Textarea
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => setFormData({...formData, address: e.target.value})}
-                  placeholder="Full Address..."
-                  required
-                />
+              <div style={{ marginBottom: 16 }}>
+                <label className="gov-label">Declared Address</label>
+                <textarea value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })}
+                  placeholder="Full Address..." required className="gov-input" rows={3} />
               </div>
-
-              <Button 
-                type="submit" 
-                className="w-full bg-[#71C9CE] hover:bg-[#5fb8bd]"
-                disabled={scanning}
-              >
+              <button type="submit" disabled={scanning} className="gov-btn-primary" style={{ width: '100%', padding: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, opacity: scanning ? 0.7 : 1 }}>
                 {scanning ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Scanning Authorities...
-                  </>
+                  <><div className="animate-spin rounded-full" style={{ width: 12, height: 12, border: '2px solid #fff', borderTopColor: 'transparent', borderRadius: '50%' }}></div> Scanning Authorities...</>
                 ) : (
-                  <>
-                    <ScanLine className="h-4 w-4 mr-2" />
-                    Run Deep Scan
-                  </>
+                  <><ScanLine style={{ width: 14, height: 14 }} /> Run Deep Scan</>
                 )}
-              </Button>
+              </button>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Scan Result */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Scan Result</CardTitle>
-            <CardDescription>AI-powered integrity assessment</CardDescription>
-          </CardHeader>
-          <CardContent>
+        <div style={{ background: '#fff', border: '1px solid #ccc', borderTop: '3px solid #003087' }}>
+          <div style={{ background: '#003087', padding: '8px 14px' }}>
+            <span style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>Scan Result</span>
+          </div>
+          <div style={{ padding: 16 }}>
             {scanResult ? (
-              <div className={`p-6 rounded-lg ${
-                scanResult.integrity_status === 'CLEAN' ? 'bg-green-50' :
-                scanResult.integrity_status === 'REVIEW REQUIRED' ? 'bg-yellow-50' : 'bg-red-50'
-              }`}>
-                <div className="flex flex-col items-center text-center mb-6">
-                  {getStatusIcon(scanResult.integrity_status)}
-                  <h3 className="text-2xl font-bold mt-4">{scanResult.integrity_status}</h3>
-                  <p className="text-slate-600 mt-2">{scanResult.system_message}</p>
+              <div style={{ border: `2px solid ${getStatusColor(scanResult.integrity_status)}`, padding: 16 }}>
+                <div style={{ textAlign: 'center', marginBottom: 16 }}>
+                  {scanResult.integrity_status === 'CLEAN'
+                    ? <CheckCircle2 style={{ width: 48, height: 48, color: '#27ae60', margin: '0 auto 8px' }} />
+                    : <AlertTriangle style={{ width: 48, height: 48, color: getStatusColor(scanResult.integrity_status), margin: '0 auto 8px' }} />
+                  }
+                  <div style={{ fontSize: 18, fontWeight: 700, color: getStatusColor(scanResult.integrity_status) }}>{scanResult.integrity_status}</div>
+                  <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>{scanResult.system_message}</div>
                 </div>
-
-                <div className="space-y-4">
-                  {/* Risk Score */}
-                  <div className="flex justify-between items-center p-3 bg-white rounded-lg">
-                    <span className="text-slate-600">Risk Score</span>
-                    <span className="text-2xl font-bold">{scanResult.risk_score}/100</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: '#f5f5f0', border: '1px solid #ddd', marginBottom: 8 }}>
+                  <span style={{ fontSize: 13, color: '#555' }}>Risk Score</span>
+                  <span style={{ fontSize: 18, fontWeight: 700, color: getStatusColor(scanResult.integrity_status) }}>{scanResult.risk_score}/100</span>
+                </div>
+                {scanResult.family_cluster?.length > 0 && (
+                  <div style={{ padding: '8px 12px', background: '#f5f5f0', border: '1px solid #ddd', marginBottom: 8 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#555', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <Users style={{ width: 13, height: 13 }} /> Family Cluster
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                      {scanResult.family_cluster.map((member, i) => (
+                        <span key={i} className="gov-badge-blue">{member}</span>
+                      ))}
+                    </div>
                   </div>
-
-                  {/* Family Cluster */}
-                  {scanResult.family_cluster?.length > 0 && (
-                    <div className="p-3 bg-white rounded-lg">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <Users className="h-4 w-4 text-slate-600" />
-                        <span className="text-slate-600">Family Cluster</span>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {scanResult.family_cluster.map((member, i) => (
-                          <Badge key={i} variant="secondary">{member}</Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Assets Detected */}
-                  {scanResult.assets_detected?.length > 0 && (
-                    <div className="p-3 bg-white rounded-lg">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <AlertTriangle className="h-4 w-4 text-red-600" />
-                        <span className="text-slate-600">Assets Detected</span>
-                      </div>
-                      <ul className="space-y-1">
-                        {scanResult.assets_detected.map((asset, i) => (
-                          <li key={i} className="text-sm text-slate-700">{asset}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
+                )}
+                {scanResult.assets_detected?.length > 0 && (
+                  <div style={{ padding: '8px 12px', background: '#fff8f8', border: '1px solid #fdd', borderLeft: '3px solid #c0392b' }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#c0392b', marginBottom: 6 }}>Assets Detected</div>
+                    {scanResult.assets_detected.map((asset, i) => (
+                      <div key={i} style={{ fontSize: 12, color: '#555', marginBottom: 2 }}>• {asset}</div>
+                    ))}
+                  </div>
+                )}
               </div>
             ) : (
-              <div className="text-center py-12 text-slate-400">
-                <ScanLine className="h-16 w-16 mx-auto mb-4" />
-                <p>Enter applicant details and run a scan to see results</p>
+              <div style={{ textAlign: 'center', padding: 40, color: '#aaa' }}>
+                <ScanLine style={{ width: 40, height: 40, margin: '0 auto 10px' }} />
+                <p style={{ fontSize: 13 }}>Enter applicant details and run a scan to see results</p>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Recent Scans */}
-      <Card className="mt-8">
-        <CardHeader>
-          <CardTitle>Recent Scans</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div style={{ background: '#fff', border: '1px solid #ccc', borderTop: '3px solid #003087' }}>
+        <div style={{ background: '#003087', padding: '8px 14px' }}>
+          <span style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>Recent Scans</span>
+        </div>
+        <div style={{ padding: 14 }}>
           {history?.scans?.length > 0 ? (
-            <div className="space-y-4">
-              {history.scans.map((scan, index) => (
-                <div key={index} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-                  <div className="flex items-center space-x-4">
-                    <div className={`w-3 h-3 rounded-full ${getStatusColor(scan.integrity_status)}`}></div>
-                    <div>
-                      <p className="font-medium text-slate-900">{scan.applicant_name}</p>
-                      <p className="text-sm text-slate-500">
-                        Scanned by {scan.scanned_by_name} • {new Date(scan.scanned_at).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <Badge className={getStatusColor(scan.integrity_status)}>
-                      {scan.integrity_status}
-                    </Badge>
-                    <span className="text-sm font-medium">
-                      Risk: {scan.risk_score}/100
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <table className="gov-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th>Applicant Name</th>
+                  <th>Scanned By</th>
+                  <th>Date &amp; Time</th>
+                  <th>Status</th>
+                  <th>Risk Score</th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.scans.map((scan, index) => (
+                  <tr key={index}>
+                    <td style={{ fontWeight: 600 }}>{scan.applicant_name}</td>
+                    <td>{scan.scanned_by_name}</td>
+                    <td style={{ fontSize: 12, color: '#888' }}>{new Date(scan.scanned_at).toLocaleString()}</td>
+                    <td>{getStatusBadge(scan.integrity_status)}</td>
+                    <td style={{ fontWeight: 700, color: getStatusColor(scan.integrity_status) }}>{scan.risk_score}/100</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           ) : (
-            <p className="text-center text-slate-500 py-8">No scans recorded yet</p>
+            <div style={{ textAlign: 'center', padding: 24, color: '#888', fontSize: 13 }}>No scans recorded yet.</div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };

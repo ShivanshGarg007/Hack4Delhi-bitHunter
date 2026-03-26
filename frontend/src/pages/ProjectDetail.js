@@ -31,46 +31,30 @@ const ProjectDetail = () => {
       const response = await axios.get(`${API}/citizen/projects/${id}`);
       setProject(response.data);
     } catch (error) {
-      console.error('Failed to fetch project:', error);
       toast.error('Failed to load project details');
     } finally {
       setLoading(false);
     }
   }, [id]);
 
-  useEffect(() => {
-    fetchProject();
-  }, [fetchProject]);
+  useEffect(() => { fetchProject(); }, [fetchProject]);
 
   const handleSubmitReport = async (e) => {
     e.preventDefault();
-    if (!reportData.description.trim()) {
-      toast.error('Please provide a description');
-      return;
-    }
-
+    if (!reportData.description.trim()) { toast.error('Please provide a description'); return; }
     setSubmitting(true);
     try {
       const formData = new FormData();
       formData.append('project_id', id);
       formData.append('description', reportData.description);
-      if (reportData.file) {
-        formData.append('file', reportData.file);
-      }
-      if (project.location) {
-        formData.append('location', JSON.stringify(project.location));
-      }
-
-      await axios.post(`${API}/citizen/reports`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-
+      if (reportData.file) formData.append('file', reportData.file);
+      if (project.location) formData.append('location', JSON.stringify(project.location));
+      await axios.post(`${API}/citizen/reports`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       toast.success('Report submitted successfully');
       setShowReportForm(false);
       setReportData({ description: '', file: null });
       fetchProject();
     } catch (error) {
-      console.error('Failed to submit report:', error);
       toast.error('Failed to submit report');
     } finally {
       setSubmitting(false);
@@ -82,208 +66,179 @@ const ProjectDetail = () => {
     return new Date(dateStr).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#E3FDFD] flex items-center justify-center">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#71C9CE]"></div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div style={{ padding: 40, textAlign: 'center' }}>
+      <div className="animate-spin rounded-full" style={{ width: 32, height: 32, border: '3px solid #003087', borderTopColor: 'transparent', borderRadius: '50%', margin: '0 auto' }}></div>
+    </div>
+  );
 
-  if (!project) {
-    return (
-      <div className="min-h-screen bg-[#E3FDFD] flex items-center justify-center">
-        <p className="text-slate-600">Project not found</p>
-      </div>
-    );
-  }
+  if (!project) return <div style={{ padding: 40, textAlign: 'center', color: '#888' }}>Project not found.</div>;
 
   return (
-    <div className="min-h-screen bg-[#E3FDFD]">
-      <nav className="bg-white border-b border-slate-100 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <button onClick={() => navigate('/citizen')} className="flex items-center space-x-2 text-slate-600 hover:text-slate-900 transition-colors">
-            <ArrowLeft className="h-5 w-5" />
-            <span className="font-medium">Back to Projects</span>
-          </button>
+    <div className="min-h-screen" style={{ background: '#F5F5F0' }}>
+      {/* Top bar */}
+      <div style={{ background: '#003087', color: '#fff', fontSize: 12, padding: '4px 0' }}>
+        <div className="max-w-7xl mx-auto px-4 flex justify-between">
+          <span>Government of National Capital Territory of Delhi</span>
+          <span>A- A A+</span>
         </div>
-      </nav>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-6">
-          <div className="bg-white rounded-xl border border-slate-100 p-8 shadow-sm">
-            <div className="flex items-start justify-between mb-6">
-              <div>
-                <h1 className="text-3xl font-bold text-slate-900 mb-2">{project.project_name}</h1>
-                <p className="text-slate-600">{project.description}</p>
-              </div>
-              {project.is_flagged && (
-                <div className="flex items-center space-x-2 px-4 py-2 bg-red-50 border border-red-200 rounded-lg">
-                  <AlertTriangle className="h-5 w-5 text-red-500" />
-                  <span className="text-sm font-medium text-red-700">Flagged</span>
-                </div>
-              )}
+      </div>
+      <div className="gov-tricolor-bar"></div>
+      <div style={{ background: '#fff', borderBottom: '1px solid #ccc' }}>
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
+          <button onClick={() => navigate('/citizen')} style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#003087', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13 }}>
+            <ArrowLeft style={{ width: 16, height: 16 }} /> Back to Projects
+          </button>
+          <div style={{ flex: 1, textAlign: 'center' }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#003087', fontFamily: 'Noto Serif, Georgia, serif' }}>
+              Project Details — Citizen Portal
             </div>
+          </div>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Emblem_of_India.svg/120px-Emblem_of_India.svg.png"
+            alt="Emblem" style={{ height: 44 }} onError={e => { e.target.style.display = 'none'; }} />
+        </div>
+      </div>
+      <div className="gov-nav-bar" style={{ padding: '6px 0' }}>
+        <div className="max-w-7xl mx-auto px-4">
+          <span style={{ color: '#ccd6f6', fontSize: 12 }}>
+            Home &rsaquo; Citizen Portal &rsaquo; Projects &rsaquo; {project.project_name}
+          </span>
+        </div>
+      </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-[#CBF1F5] rounded-lg p-4">
-                <div className="flex items-center space-x-2 text-slate-600 mb-2">
-                  <DollarSign className="h-5 w-5" />
-                  <span className="text-sm font-medium">Contract Value</span>
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Summary */}
+        <div style={{ background: '#fff', border: '1px solid #ccc', borderTop: '3px solid #003087', marginBottom: 16 }}>
+          <div style={{ background: '#003087', padding: '8px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>Project Summary</span>
+            {project.is_flagged && (
+              <span style={{ background: '#c0392b', color: '#fff', fontSize: 11, padding: '2px 8px', fontWeight: 700 }}>
+                ⚠ FLAGGED
+              </span>
+            )}
+          </div>
+          <div style={{ padding: 16 }}>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: '#003087', fontFamily: 'Noto Serif, Georgia, serif', marginBottom: 6 }}>{project.project_name}</h2>
+            <p style={{ fontSize: 13, color: '#555', marginBottom: 14 }}>{project.description}</p>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {[
+                { label: 'Contract Value', value: `₹${(project.contract_value / 10000000).toFixed(2)} Cr`, color: '#003087' },
+                { label: 'Contractor', value: project.contractor_name, color: '#333' },
+                { label: 'Status', value: project.status, color: '#138808' },
+              ].map((stat, i) => (
+                <div key={i} style={{ background: '#f5f5f0', border: '1px solid #ddd', padding: '10px 12px', borderLeft: `3px solid ${stat.color}` }}>
+                  <div style={{ fontSize: 11, color: '#888', marginBottom: 2 }}>{stat.label}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: stat.color, textTransform: 'capitalize' }}>{stat.value}</div>
                 </div>
-                <p className="text-2xl font-bold text-slate-900">₹{(project.contract_value / 10000000).toFixed(2)} Cr</p>
-              </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
-              <div className="bg-[#CBF1F5] rounded-lg p-4">
-                <div className="flex items-center space-x-2 text-slate-600 mb-2">
-                  <User className="h-5 w-5" />
-                  <span className="text-sm font-medium">Contractor</span>
-                </div>
-                <p className="text-lg font-bold text-slate-900">{project.contractor_name}</p>
-              </div>
-
-              <div className="bg-[#CBF1F5] rounded-lg p-4">
-                <div className="flex items-center space-x-2 text-slate-600 mb-2">
-                  <Calendar className="h-5 w-5" />
-                  <span className="text-sm font-medium">Status</span>
-                </div>
-                <p className="text-lg font-bold text-slate-900 capitalize">{project.status}</p>
-              </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+          {/* Details */}
+          <div style={{ background: '#fff', border: '1px solid #ccc', borderTop: '3px solid #003087' }}>
+            <div style={{ background: '#003087', padding: '8px 14px' }}>
+              <span style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>Project Details</span>
+            </div>
+            <div style={{ padding: 14 }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                <tbody>
+                  {[
+                    { label: 'Department', value: project.department },
+                    { label: 'Location', value: `${project.location?.city}, ${project.location?.state}` },
+                    { label: 'Start Date', value: formatDate(project.start_date) },
+                    { label: 'Expected Completion', value: formatDate(project.expected_completion) },
+                  ].map((row, i) => (
+                    <tr key={i}>
+                      <td style={{ padding: '7px 10px', background: '#f5f5f0', fontWeight: 600, color: '#555', width: '40%', border: '1px solid #eee' }}>{row.label}</td>
+                      <td style={{ padding: '7px 10px', border: '1px solid #eee' }}>{row.value}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl border border-slate-100 p-6 shadow-sm">
-              <h2 className="text-xl font-bold text-slate-900 mb-4">Project Details</h2>
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm text-slate-500">Department</p>
-                  <p className="text-base font-medium text-slate-900">{project.department}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-500">Location</p>
-                  <div className="flex items-center space-x-2">
-                    <MapPin className="h-4 w-4 text-slate-400" />
-                    <p className="text-base font-medium text-slate-900">{project.location?.city}, {project.location?.state}</p>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-500">Start Date</p>
-                  <p className="text-base font-medium text-slate-900">{formatDate(project.start_date)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-500">Expected Completion</p>
-                  <p className="text-base font-medium text-slate-900">{formatDate(project.expected_completion)}</p>
-                </div>
+          {/* Map */}
+          {project.location && (
+            <div style={{ background: '#fff', border: '1px solid #ccc', borderTop: '3px solid #003087' }}>
+              <div style={{ background: '#003087', padding: '8px 14px' }}>
+                <span style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>Project Location</span>
               </div>
-            </div>
-
-            {project.location && (
-              <div className="bg-white rounded-xl border border-slate-100 p-6 shadow-sm">
-                <h2 className="text-xl font-bold text-slate-900 mb-4">Location</h2>
-                <div className="h-64 rounded-lg overflow-hidden">
-                  <MapContainer
-                    center={[project.location.lat, project.location.lng]}
-                    zoom={13}
-                    style={{ height: '100%', width: '100%' }}
-                  >
-                    <TileLayer
-                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                    />
+              <div style={{ padding: 14 }}>
+                <div style={{ height: 220, border: '1px solid #ddd' }}>
+                  <MapContainer center={[project.location.lat, project.location.lng]} zoom={13} style={{ height: '100%', width: '100%' }}>
+                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap' />
                     <Marker position={[project.location.lat, project.location.lng]}>
                       <Popup>{project.project_name}</Popup>
                     </Marker>
                   </MapContainer>
                 </div>
               </div>
-            )}
-          </div>
-
-          <div className="bg-white rounded-xl border border-slate-100 p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-slate-900">Citizen Reports ({project.citizen_reports?.length || 0})</h2>
-              <button
-                data-testid="submit-report-btn"
-                onClick={() => setShowReportForm(!showReportForm)}
-                className="px-4 py-2 bg-[#71C9CE] hover:bg-[#5BB8BE] text-white rounded-lg transition-colors duration-300 flex items-center space-x-2"
-              >
-                <Upload className="h-4 w-4" />
-                <span>Submit Report</span>
-              </button>
             </div>
+          )}
+        </div>
 
+        {/* Citizen Reports */}
+        <div style={{ background: '#fff', border: '1px solid #ccc', borderTop: '3px solid #003087' }}>
+          <div style={{ background: '#003087', padding: '8px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>Citizen Reports ({project.citizen_reports?.length || 0})</span>
+            <button data-testid="submit-report-btn" onClick={() => setShowReportForm(!showReportForm)}
+              style={{ background: '#FF6200', color: '#fff', border: 'none', padding: '4px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+              <Upload style={{ width: 12, height: 12 }} /> Submit Report
+            </button>
+          </div>
+          <div style={{ padding: 14 }}>
             {showReportForm && (
-              <form onSubmit={handleSubmitReport} className="mb-6 p-6 bg-[#E3FDFD] rounded-lg border border-[#A6E3E9]">
-                <h3 className="font-semibold text-slate-900 mb-4">Submit Anonymous Report</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Description *</label>
-                    <textarea
-                      data-testid="report-description-input"
-                      value={reportData.description}
-                      onChange={(e) => setReportData({...reportData, description: e.target.value})}
-                      rows="4"
-                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#71C9CE] focus:border-transparent"
-                      placeholder="Describe the issue you observed..."
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Attach Photo/Video (optional)</label>
-                    <input
-                      type="file"
-                      accept="image/*,video/*"
-                      onChange={(e) => setReportData({...reportData, file: e.target.files[0]})}
-                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#71C9CE] focus:border-transparent"
-                    />
-                  </div>
-                  <div className="flex space-x-3">
-                    <button
-                      type="submit"
-                      disabled={submitting}
-                      className="px-6 py-2 bg-[#71C9CE] hover:bg-[#5BB8BE] text-white rounded-lg transition-colors duration-300 disabled:opacity-50"
-                    >
-                      {submitting ? 'Submitting...' : 'Submit Report'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowReportForm(false)}
-                      className="px-6 py-2 bg-white border-2 border-[#71C9CE] text-[#71C9CE] hover:bg-[#E3FDFD] rounded-lg transition-colors duration-300"
-                    >
-                      Cancel
-                    </button>
-                  </div>
+              <form onSubmit={handleSubmitReport} style={{ background: '#f5f5f0', border: '1px solid #ddd', borderLeft: '3px solid #FF6200', padding: 16, marginBottom: 16 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#003087', marginBottom: 12 }}>Submit Anonymous Report</div>
+                <div style={{ marginBottom: 10 }}>
+                  <label className="gov-label">Description *</label>
+                  <textarea data-testid="report-description-input" value={reportData.description}
+                    onChange={e => setReportData({ ...reportData, description: e.target.value })}
+                    rows={4} className="gov-input" placeholder="Describe the issue you observed..." />
+                </div>
+                <div style={{ marginBottom: 12 }}>
+                  <label className="gov-label">Attach Photo/Video (optional)</label>
+                  <input type="file" accept="image/*,video/*"
+                    onChange={e => setReportData({ ...reportData, file: e.target.files[0] })}
+                    className="gov-input" />
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button type="submit" disabled={submitting} className="gov-btn-saffron" style={{ opacity: submitting ? 0.7 : 1 }}>
+                    {submitting ? 'Submitting...' : 'Submit Report'}
+                  </button>
+                  <button type="button" onClick={() => setShowReportForm(false)} className="gov-btn-outline">Cancel</button>
                 </div>
               </form>
             )}
-
-            <div className="space-y-4">
-              {project.citizen_reports && project.citizen_reports.length > 0 ? (
-                project.citizen_reports.map((report) => (
-                  <div key={report.id} className="p-4 bg-[#CBF1F5] rounded-lg border border-slate-100">
-                    <div className="flex items-start space-x-3">
-                      <FileText className="h-5 w-5 text-slate-600 mt-1" />
-                      <div className="flex-1">
-                        <p className="text-slate-900">{report.description}</p>
-                        <p className="text-sm text-slate-500 mt-2">
-                          {new Date(report.created_at).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })}
-                        </p>
-                        {report.file_url && (
-                          <a href={report.file_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center space-x-1 text-sm text-[#71C9CE] hover:underline mt-2">
-                            <ImageIcon className="h-4 w-4" />
-                            <span>View Attachment</span>
-                          </a>
-                        )}
-                      </div>
-                    </div>
+            {project.citizen_reports && project.citizen_reports.length > 0 ? (
+              project.citizen_reports.map(report => (
+                <div key={report.id} style={{ display: 'flex', gap: 8, padding: '10px 12px', background: '#f5f5f0', border: '1px solid #ddd', marginBottom: 6 }}>
+                  <FileText style={{ width: 14, height: 14, color: '#003087', flexShrink: 0, marginTop: 2 }} />
+                  <div>
+                    <p style={{ fontSize: 13, color: '#333', margin: 0 }}>{report.description}</p>
+                    <p style={{ fontSize: 11, color: '#888', marginTop: 4 }}>
+                      {new Date(report.created_at).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })}
+                    </p>
+                    {report.file_url && (
+                      <a href={report.file_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: '#003087', display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                        <ImageIcon style={{ width: 12, height: 12 }} /> View Attachment
+                      </a>
+                    )}
                   </div>
-                ))
-              ) : (
-                <p className="text-center text-slate-600 py-8">No reports yet. Be the first to report!</p>
-              )}
-            </div>
+                </div>
+              ))
+            ) : (
+              <p style={{ fontSize: 13, color: '#888', textAlign: 'center', padding: 24 }}>No reports yet. Be the first to report!</p>
+            )}
           </div>
         </div>
+      </div>
+
+      <div style={{ background: '#003087', color: '#ccd6f6', marginTop: 32, padding: '10px 0', textAlign: 'center', fontSize: 11 }}>
+        © 2026 Government of National Capital Territory of Delhi | Sentinel Platform | NIC Delhi
       </div>
     </div>
   );

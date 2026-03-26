@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Building2, Calendar, Phone, Mail, FileText, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, FileText, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const VendorDetail = () => {
   const { id } = useParams();
@@ -15,166 +14,119 @@ const VendorDetail = () => {
 
   const fetchVendor = useCallback(async () => {
     try {
-      const response = await axios.get(`${API}/official/vendors/${id}`);
-      setVendor(response.data);
-    } catch (error) {
-      console.error('Failed to fetch vendor:', error);
-      toast.error('Failed to load vendor details');
-    } finally {
-      setLoading(false);
-    }
+      const r = await axios.get(`${API}/official/vendors/${id}`);
+      setVendor(r.data);
+    } catch { toast.error('Failed to load vendor details'); }
+    finally { setLoading(false); }
   }, [id]);
 
-  useEffect(() => {
-    fetchVendor();
-  }, [fetchVendor]);
+  useEffect(() => { fetchVendor(); }, [fetchVendor]);
 
-  const getRiskColor = (score) => {
-    if (score >= 70) return 'text-red-600';
-    if (score >= 40) return 'text-amber-600';
-    return 'text-emerald-600';
+  const getRiskBadge = (score) => {
+    if (score >= 70) return <span className="gov-badge gov-badge-high">High Risk — {score}/100</span>;
+    if (score >= 40) return <span className="gov-badge gov-badge-medium">Medium Risk — {score}/100</span>;
+    return <span className="gov-badge gov-badge-low">Low Risk — {score}/100</span>;
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#E3FDFD] flex items-center justify-center">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#71C9CE]"></div>
-      </div>
-    );
-  }
-
-  if (!vendor) {
-    return (
-      <div className="min-h-screen bg-[#E3FDFD] flex items-center justify-center">
-        <p className="text-slate-600">Vendor not found</p>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div style={{ padding: 48, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+      <div className="gov-spinner"></div>
+    </div>
+  );
+  if (!vendor) return <div style={{ padding: 40, textAlign: 'center', color: '#888' }}>Vendor not found.</div>;
 
   return (
-    <div className="min-h-screen bg-[#E3FDFD]">
-      <nav className="bg-white border-b border-slate-100 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <button onClick={() => navigate('/official/vendors')} className="flex items-center space-x-2 text-slate-600 hover:text-slate-900 transition-colors">
-            <ArrowLeft className="h-5 w-5" />
-            <span className="font-medium">Back to Vendors</span>
+    <div style={{ padding: '22px 24px', minHeight: '100%' }}>
+      <div className="gov-page-title-bar">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button onClick={() => navigate('/official/vendors')} className="gov-btn gov-btn-outline" style={{ padding: '5px 12px', fontSize: 12 }}>
+            <ArrowLeft style={{ width: 13, height: 13 }} /> Back
           </button>
-        </div>
-      </nav>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-6">
-          <div className="bg-white rounded-xl border border-slate-100 p-8 shadow-sm">
-            <div className="flex items-start justify-between mb-6">
-              <div>
-                <h1 className="text-3xl font-bold text-slate-900 mb-2">{vendor.company_name}</h1>
-                <p className="text-slate-600">{vendor.registration_number}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm text-slate-500 mb-1">Risk Score</p>
-                <p className={`text-4xl font-bold ${getRiskColor(vendor.risk_score)}`}>
-                  {vendor.risk_score}
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-[#CBF1F5] rounded-lg p-4">
-                <div className="flex items-center space-x-2 text-slate-600 mb-2">
-                  <FileText className="h-5 w-5" />
-                  <span className="text-sm font-medium">Total Contracts</span>
-                </div>
-                <p className="text-2xl font-bold text-slate-900">{vendor.total_contracts || 0}</p>
-              </div>
-
-              <div className="bg-[#CBF1F5] rounded-lg p-4">
-                <div className="flex items-center space-x-2 text-slate-600 mb-2">
-                  <AlertTriangle className="h-5 w-5" />
-                  <span className="text-sm font-medium">Delayed Projects</span>
-                </div>
-                <p className="text-2xl font-bold text-amber-600">{vendor.delayed_projects || 0}</p>
-              </div>
-
-              <div className="bg-[#CBF1F5] rounded-lg p-4">
-                <div className="flex items-center space-x-2 text-slate-600 mb-2">
-                  <Calendar className="h-5 w-5" />
-                  <span className="text-sm font-medium">Established</span>
-                </div>
-                <p className="text-xl font-bold text-slate-900">{vendor.established_year}</p>
-              </div>
-
-              <div className="bg-[#CBF1F5] rounded-lg p-4">
-                <div className="flex items-center space-x-2 text-slate-600 mb-2">
-                  <FileText className="h-5 w-5" />
-                  <span className="text-sm font-medium">Total Value</span>
-                </div>
-                <p className="text-lg font-bold text-slate-900">₹{((vendor.total_value || 0) / 10000000).toFixed(2)} Cr</p>
-              </div>
+          <div>
+            <h1 className="gov-page-title" style={{ fontSize: 17 }}>{vendor.company_name}</h1>
+            <div className="gov-breadcrumb" style={{ marginBottom: 0, marginTop: 3 }}>
+              <a href="/official/dashboard">Dashboard</a><span className="sep">›</span>
+              <a href="/official/vendors">Vendors</a><span className="sep">›</span>
+              <span>{vendor.company_name}</span>
             </div>
           </div>
-
-          <div className="bg-white rounded-xl border border-slate-100 p-6 shadow-sm">
-            <h2 className="text-xl font-bold text-slate-900 mb-4">Company Information</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm text-slate-500">Contact Person</p>
-                  <p className="text-base font-medium text-slate-900">{vendor.contact_person}</p>
-                </div>
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <Mail className="h-4 w-4 text-slate-400" />
-                    <p className="text-sm text-slate-500">Email</p>
-                  </div>
-                  <p className="text-base font-medium text-slate-900">{vendor.email}</p>
-                </div>
-              </div>
-              <div className="space-y-3">
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <Phone className="h-4 w-4 text-slate-400" />
-                    <p className="text-sm text-slate-500">Phone</p>
-                  </div>
-                  <p className="text-base font-medium text-slate-900">{vendor.phone}</p>
-                </div>
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <Building2 className="h-4 w-4 text-slate-400" />
-                    <p className="text-sm text-slate-500">Registration</p>
-                  </div>
-                  <p className="text-base font-mono text-slate-900">{vendor.registration_number}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {vendor.contracts && vendor.contracts.length > 0 && (
-            <div className="bg-white rounded-xl border border-slate-100 p-6 shadow-sm">
-              <h2 className="text-xl font-bold text-slate-900 mb-4">Contract History ({vendor.contracts.length})</h2>
-              <div className="space-y-3">
-                {vendor.contracts.map((contract) => (
-                  <div
-                    key={contract.id}
-                    onClick={() => navigate(`/official/contracts/${contract.id}`)}
-                    className="p-4 bg-[#CBF1F5] hover:bg-[#A6E3E9] rounded-lg border border-slate-100 hover:border-[#71C9CE] transition-all cursor-pointer"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-slate-900 mb-1">{contract.project_name}</h3>
-                        <p className="text-sm text-slate-600">{contract.department}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-lg font-bold text-slate-900">₹{(contract.contract_value / 10000000).toFixed(2)} Cr</p>
-                        <p className="text-xs text-slate-500 capitalize">{contract.status}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
+
+      {/* Summary stats */}
+      <div className="gov-card" style={{ marginBottom: 16 }}>
+        <div className="gov-card-header">
+          <span>Vendor Summary</span>
+          {getRiskBadge(vendor.risk_score)}
+        </div>
+        <div className="gov-card-body">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+            {[
+              { icon: <FileText style={{ width: 16, height: 16 }} />, label: 'Total Contracts', value: vendor.total_contracts || 0, color: '#003087' },
+              { icon: <AlertTriangle style={{ width: 16, height: 16 }} />, label: 'Delayed Projects', value: vendor.delayed_projects || 0, color: '#C0392B' },
+              { icon: <Calendar style={{ width: 16, height: 16 }} />, label: 'Established', value: vendor.established_year, color: '#333' },
+              { icon: <FileText style={{ width: 16, height: 16 }} />, label: 'Total Value', value: `₹${((vendor.total_value || 0) / 10000000).toFixed(2)} Cr`, color: '#138808' },
+            ].map((s, i) => (
+              <div key={i} style={{ background: '#F7F7F3', border: '1px solid #E5E5E0', borderLeft: `3px solid ${s.color}`, padding: '12px 14px' }}>
+                <div style={{ color: s.color, marginBottom: 5 }}>{s.icon}</div>
+                <div style={{ fontSize: 11, color: '#888', marginBottom: 3 }}>{s.label}</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: s.color }}>{s.value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Company Info */}
+      <div className="gov-card" style={{ marginBottom: 16 }}>
+        <div className="gov-card-header"><span>Company Information</span></div>
+        <div className="gov-card-body" style={{ padding: 0 }}>
+          <table className="gov-info-table">
+            <tbody>
+              {[
+                ['Contact Person', vendor.contact_person],
+                ['Email Address', vendor.email],
+                ['Phone Number', vendor.phone],
+                ['Registration No.', vendor.registration_number],
+              ].map(([k, v], i) => (
+                <tr key={i}>
+                  <td>{k}</td>
+                  <td style={{ fontFamily: k === 'Registration No.' ? 'Courier New, monospace' : 'inherit' }}>{v}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Contract History */}
+      {vendor.contracts?.length > 0 && (
+        <div className="gov-card">
+          <div className="gov-card-header"><span>Contract History ({vendor.contracts.length})</span></div>
+          <div style={{ overflowX: 'auto' }}>
+            <table className="gov-table">
+              <thead>
+                <tr>
+                  <th>Project Name</th>
+                  <th>Department</th>
+                  <th>Value</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {vendor.contracts.map(c => (
+                  <tr key={c.id} onClick={() => navigate(`/official/contracts/${c.id}`)}>
+                    <td style={{ fontWeight: 600, color: '#003087' }}>{c.project_name}</td>
+                    <td style={{ fontSize: 12, color: '#555' }}>{c.department}</td>
+                    <td style={{ fontWeight: 600 }}>₹{(c.contract_value / 10000000).toFixed(2)} Cr</td>
+                    <td style={{ textTransform: 'capitalize', color: c.status === 'delayed' ? '#C0392B' : c.status === 'completed' ? '#138808' : '#003087', fontWeight: 600, fontSize: 12 }}>{c.status}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
