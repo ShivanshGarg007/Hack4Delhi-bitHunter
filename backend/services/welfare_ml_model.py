@@ -284,14 +284,14 @@ class WelfareFraudModel:
         # Income-asset mismatch
         income_asset_mismatch = max(0, asset_risk_score - (income_level * asset_risk_score))
         
-        # Create feature vector
-        features = np.array([[
+        # Create feature vector as DataFrame to avoid feature name warning
+        features = pd.DataFrame([[
             income_level,
             age,
             asset_risk_score,
             address_complexity,
             income_asset_mismatch
-        ]])
+        ]], columns=self.feature_names)
         
         # Scale
         features_scaled = self.scaler.transform(features)

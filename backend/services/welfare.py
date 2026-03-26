@@ -20,6 +20,17 @@ from services.welfare_ml_model import WelfareFraudModel
 
 logger = get_logger("services.welfare")
 
+# Singleton ML model — load once at startup, reuse for all requests
+_ml_model = None
+
+def get_ml_model() -> WelfareFraudModel:
+    global _ml_model
+    if _ml_model is None:
+        _ml_model = WelfareFraudModel()
+        _ml_model.load_model()
+        logger.info("Welfare ML model loaded and cached")
+    return _ml_model
+
 # Data paths
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE_DIR, 'data')
@@ -200,9 +211,8 @@ class WelfareChecker:
             Scan result with risk status and flags
         """
         try:
-            # Initialize ML model
-            ml_model = WelfareFraudModel()
-            ml_model.load_model()
+            # Use cached singleton ML model
+            ml_model = get_ml_model()
             
             # Prepare data for ML prediction
             ml_input = {
